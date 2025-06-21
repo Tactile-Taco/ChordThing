@@ -1,22 +1,23 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="stylesheet" href="styles.css" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ChordMan</title>
-    <script type="module" src="/main.js" defer></script>
-    <script type="module" src="/tauri-ext.js" defer></script>
-    <script type="module" src="/htmx.min.js" defer></script>
-  </head>
 
-  <body hx-ext="tauri" hx-boost="True">
-    <h1>Welcome to Luke's chord maker</h1>
-    <main class="container">
-      <div id="typer">
-        <span id="typed">Some stuff that was typed </span><span id="untyped">some stuff that wasn't typed</span>
-        <input type="text" autocomplete="off" autocapitalize="none" autocorrect="off" data-gramm="false" data-gramm-editor="false" data-enable-grammerly="false" list="autocompleteOff" spellcheck="false"/>
+<head>
+  <meta charset="UTF-8" />
+  <link rel="stylesheet" href="styles.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ChordMan</title>
+  <script type="module" src="/main.js" defer></script>
+  <script type="module" src="/tauri-ext.js" defer></script>
+  <script type="module" src="/htmx.min.js" defer></script>
+</head>
+
+<body hx-ext="tauri" hx-boost="True">
+  <main class="app-grid">
+    <div id="typer" contenteditable="plaintext-only">
+      <div id="typer-display">
       </div>
-    </main>
-  </body>
+    </div>
+  </main>
+</body>
+
 </html>
