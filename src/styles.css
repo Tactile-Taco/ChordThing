@@ -60,6 +60,8 @@ select {
 
 #typer-display {
   overflow-y: scroll;
+  white-space: pre-wrap;
+  text-wrap-style: stable;
   position: relative;
   height: 8lh;
   scrollbar-width: none;
@@ -75,17 +77,16 @@ char {
 .typo {
   color: var(--col_typo);
 
-}
-
-.typo[data-typed=" "] {
-  background-color: var(--col_typo);
+  &[data-typed=" "] {
+    background-color: var(--col_typo);
+  }
 }
 
 .correct {
   color: var(--col_correct);
 }
 
-#typer>.overlay {
+#typer>.overlay[open] {
   display: grid;
   position: absolute;
   width: 100%;
@@ -103,6 +104,12 @@ kbd>key {
   margin-inline: 1px;
 }
 
-#connectButton {
-  place-self: center;
+#chara-connect-dialog {
+  form {
+    all: unset;
+  }
+
+  & * {
+    place-self: center;
+  }
 }

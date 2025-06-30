@@ -2,11 +2,15 @@ import { CharaChorderDevice } from "/cc.js"
 const { invoke } = window.__TAURI__?.core || {
   invoke: () => console.log("Tauri not available (running in a browser)")
 }
-
+const TESTBUFFERMINLENGTH = 300;
 const typeDisplay = document.getElementById("typer-display");
 function get_text() {
-  let text = "This is totally randomly generated text I promise you. If you don't believe me that is your problem. Just a bunch of really really randomly generated text that goes on and on and on. Don't worry about it. JK this is just a testa tat tat tat at s s  s s s s s s s s s s s s s s s s s s s s s  s s s s s s s s s s s s s   s  s s s  s s        sssssssssssssssssssssss s s s s s sy sy s s s sy s sy sy y y s sy  y y sy sy ys sy:";
+  let text = "This is totally randomly generated text";
   return wrap_text(text);
+}
+
+window.onload = function() {
+  sessionStorage.setItem("next_char_index", 0);
 }
 
 function regex_escape_chords (chords) {
@@ -24,24 +28,51 @@ function split_chords(s, escaped_chords) {
   return [s]; 
 }
 
-function wrap_text(s, last_index = 0) {
+function wrap_token(token, tokenElement, frag, next_index) {
+  for (let char of token) {
+    const charNode = document.createElement('char');
+    charNode.textContent = char;
+    charNode.dataset.val = char;
+    charNode.dataset.index = next_index++;
+    charNode.dataset.typed = "untyped";
+    tokenElement.appendChild(charNode);
+  }
+  frag.appendChild(tokenElement);
+  return next_index;
+}
+
+function wrap_text(s) {
   //TODO:
   // return s and all chords in s:String and return split. You might need to add another param for chord list or make it global...t
+  let next_index = Number(sessionStorage.getItem("next_char_index") ?? 0);
+  if (next_index) s = " " + s;
   s = split_chords(s);
   const fragment = document.createDocumentFragment()
-  
-  for (let i in s) {
-    const token = s[i]
-    let tokenElement = (i % 2)? document.createElement('ruby') : document.createDocumentFragment();
-    for (let char of token) {
-      const charNode = document.createElement('char');
-      charNode.textContent = char;
-      charNode.dataset.val = char;
-      charNode.dataset.index = last_index++;
-      tokenElement.appendChild(charNode);
+  let chord = false;
+  for (const token of s) {
+    console.log(token);
+    if (chord) {
+      const tokenWrap = document.createElement('ruby');
+      next_index = wrap_token(token, tokenWrap, fragment, next_index);
+    } else {
+      //I have to do all this because text wrapping is wack in chrome unless I wrap words too
+      for (const word of token.split(/( )/)) {
+        if(word === ' '){
+          const space = document.createElement('char');
+          space.textContent = ' ';
+          space.dataset.val = ' ';
+          space.dataset.index = next_index++;
+          space.dataset.typed = 'untyped';
+          fragment.appendChild(space);
+        } else {
+          const wordWrap = document.createElement('word');
+          next_index = wrap_token(word, wordWrap, fragment, next_index);
+        }
+      }
     }
-    fragment.appendChild(tokenElement);
+    chord = !chord;
   }
+  sessionStorage.setItem("next_char_index", next_index);
   return fragment; 
 }
 
@@ -53,7 +84,6 @@ function charAt(index){
 typer.addEventListener("mousedown", function (e) {
   e.preventDefault();
   e.stopPropagation();
-  window.getSelection().selectAllChildren(document.getElementById("cursor"));
 }, { capture: false });
 
 typer.addEventListener("focus", function(e) {
@@ -88,17 +118,15 @@ typer.addEventListener("beforeinput", function(e) {
       if (reverse) {
         move.removeAttribute("class");
         move.textContent = move.dataset.val;
-        delete move.dataset.typed;
-        // if (move.offsetTop < typeDisplay.scrollTop){
-        //   move.scrollIntoView();
-        // }
+        move.dataset.typed = "untyped";
       } else {
         cursor.dataset.typed = e.data;
         cursor.textContent = cursor.dataset.typed;
         cursor.setAttribute("class", cursor.dataset.val === cursor.dataset.typed? "correct" : "typo");
-        // if (move.offsetTop > typeDisplay.scrollTop + move.offsetHeight * 2) {
-        //   typeDisplay.scrollBy(0, move.offsetHeight);
-        // }
+
+        while (typeDisplay.querySelectorAll('[data-typed="untyped"]').length < TESTBUFFERMINLENGTH){
+          typeDisplay.append(get_text());
+        }
       }
 
       move.scrollIntoView(true);
@@ -109,10 +137,11 @@ typer.addEventListener("beforeinput", function(e) {
   }
 });
 
-typeDisplay.append(get_text());
-charAt(0).id = "cursor"
+document.getElementById('chara-connect-dialog').addEventListener('close', function(e) {
+  document.getElementById("test-start-dialog").show();
+});
 
-document.getElementById('connectButton').addEventListener('click', async () => {
+document.getElementById('chara-connect').addEventListener('click', async () => {
   const device = new CharaChorderDevice();
 
   try {
@@ -120,14 +149,18 @@ document.getElementById('connectButton').addEventListener('click', async () => {
     console.log("Connected to device");
 
     const os = await device.getOperatingSystem();
+    localStorage.setItem("os", os);
     console.log("Operating System:", os);
 
     const keymap = await device.getKeymap();
+    localStorage.setItem("keymap", keymap);
     console.log("Keymap:", keymap);
 
     const chords = await device.listChords();
+    localStorage.setItem("chords", chords);
     console.log("Chords:", chords);
 
+    document.getElementById("chara-connect-dialog").close();
   } catch (error) {
     console.error("Error:", error);
   } finally {
@@ -135,3 +168,29 @@ document.getElementById('connectButton').addEventListener('click', async () => {
     console.log("Disconnected from device");
   }
 });
+
+function runTyper() {
+  const tgm = "test_gen_mode"
+  if (!sessionStorage.getItem(tgm)) {
+    sessionStorage.setItem(tgm, localStorage.getItem(tgm) ?? "random");
+  }
+
+  typeDisplay.append(get_text());
+  charAt(0).id = "cursor"
+  
+}
+
+document.getElementById("test-start-dialog").addEventListener("click", function(e) {
+  e.target.close();
+  runTyper();
+  typer.focus();
+});
+
+document.getElementById("test-pause-dialog").addEventListener("focus", function(e) {
+  e.target.close();
+  typer.focus();
+})
+
+document.getElementById("typer").addEventListener("blur", function(e) {
+  document.getElementById("test-pause-dialog").show();
+})
