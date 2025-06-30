@@ -6,6 +6,7 @@
   <link rel="stylesheet" href="styles.css" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ChordMan</title>
+  <script type="module" src="/cc.js" defer></script>
   <script type="module" src="/main.js" defer></script>
   <script type="module" src="/tauri-ext.js" defer></script>
   <script type="module" src="/htmx.min.js" defer></script>
@@ -14,8 +15,10 @@
 <body hx-ext="tauri" hx-boost="True">
   <main class="app-grid">
     <div id="typer" contenteditable="plaintext-only">
-      <div id="typer-display">
+      <div class="overlay">
+        <button id="connectButton">connect</button>
       </div>
+      <div id="typer-display"></div>
     </div>
   </main>
 </body>
