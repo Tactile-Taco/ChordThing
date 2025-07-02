@@ -32,7 +32,7 @@ select {
 
   --char-unit: 1.05em;
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  /* -moz-osx-font-smoothing: grayscale; */
 }
 
 .app-grid {
@@ -42,11 +42,10 @@ select {
   display: grid;
   grid-template-columns: [full-width-start] minmax(var(--padding-inline), 1fr) [core-start] min(100% - (var(--padding-inline) * 2), var(--core-max-width)) [core-end] minmax(var(--padding-inline), 1fr) [full-width-end];
   grid-template-rows: 60vh [typer-start] 8lh [typer-end];
-}
 
-.app-grid>* {
-  outline: solid;
-  grid-column: core;
+  * {
+    /* outline: solid; */
+  }
 }
 
 #typer {
@@ -56,6 +55,22 @@ select {
   position: relative;
   grid-template: inherit;
   grid-column: full-width;
+
+  dialog[open] {
+    display: grid;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    grid-column: full-width;
+    z-index: 1;
+    background-color: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(5px) contrast(70%) drop-shadow(15px 0px gray);
+
+    * {
+      place-self: center;
+    }
+  }
+
 }
 
 #typer-display {
@@ -72,44 +87,24 @@ char {
   color: var(--col_untyped);
   margin: 0px;
   padding: 0px;
-}
 
-.typo {
-  color: var(--col_typo);
+  &.typo {
+    color: var(--col_typo);
 
-  &[data-typed=" "] {
-    background-color: var(--col_typo);
+    &[data-typed=" "] {
+      background-color: var(--col_typo);
+    }
+  }
+
+  &.correct {
+    color: var(--col_correct);
   }
 }
 
-.correct {
-  color: var(--col_correct);
-}
-
-#typer>.overlay[open] {
-  display: grid;
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  grid-column: full-width;
-  z-index: 1;
-  background-color: rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(5px) contrast(70%) drop-shadow(15px 0px gray);
-}
 
 kbd>key {
   border-radius: 3px;
   padding: 0px 1px;
   border: 1px solid black;
   margin-inline: 1px;
-}
-
-#chara-connect-dialog {
-  form {
-    all: unset;
-  }
-
-  & * {
-    place-self: center;
-  }
 }

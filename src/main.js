@@ -5,7 +5,7 @@ const { invoke } = window.__TAURI__?.core || {
 const TESTBUFFERMINLENGTH = 300;
 const typeDisplay = document.getElementById("typer-display");
 function get_text() {
-  let text = "This is totally randomly generated text";
+  let text = "This test is totally randomly generated text";
   return wrap_text(text);
 }
 
@@ -13,16 +13,12 @@ window.onload = function() {
   sessionStorage.setItem("next_char_index", 0);
 }
 
-function regex_escape_chords (chords) {
-  //return words.map(word => word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
-  return chords.map(RegExp.escape)
-}
-
-function split_chords(s, escaped_chords) {
+function split_chords(s) {
   //TODO: find all chords in s:String and return split. You might need to add another param for chord list or make it global...
   // return [{isChord:false, str:s}];
-  if (escaped_chords && escaped_chords.length) {
-    chordReg = new RegExp(`\\b(${escaped_chords.join('|')})\\b`, 'i'); //this should really be generated when chords are generated and passed in...
+  const escaped = JSON.parse(localStorage.getItem("chords")).map(chord => chord.phrase_regex_escaped);
+  if (escaped && escaped.length) {
+    const chordReg = new RegExp(`\\b(${escaped.join('|')})\\b`, 'i'); //this should really be generated when chords are generated and passed in...
     return s.split(chordReg);
   }
   return [s]; 
@@ -138,10 +134,13 @@ typer.addEventListener("beforeinput", function(e) {
 });
 
 document.getElementById('chara-connect-dialog').addEventListener('close', function(e) {
-  document.getElementById("test-start-dialog").show();
+  // document.getElementById("test-start-dialog").show();
+  runTyper();
+  typer.focus();
 });
 
-document.getElementById('chara-connect').addEventListener('click', async () => {
+document.getElementById('chara-connect').addEventListener('click', async (e) => {
+  e.preventDefault();
   const device = new CharaChorderDevice();
 
   try {
@@ -150,17 +149,18 @@ document.getElementById('chara-connect').addEventListener('click', async () => {
 
     const os = await device.getOperatingSystem();
     localStorage.setItem("os", os);
-    console.log("Operating System:", os);
+    console.log("Operating System:", JSON.stringify(os));
 
     const keymap = await device.getKeymap();
-    localStorage.setItem("keymap", keymap);
+    localStorage.setItem("keymap", JSON.stringify(keymap));
     console.log("Keymap:", keymap);
 
     const chords = await device.listChords();
-    localStorage.setItem("chords", chords);
+    localStorage.setItem("chords", JSON.stringify(chords));
     console.log("Chords:", chords);
 
     document.getElementById("chara-connect-dialog").close();
+    document.getElementById("test-start-dialog").show();
   } catch (error) {
     console.error("Error:", error);
   } finally {
@@ -182,7 +182,6 @@ function runTyper() {
 
 document.getElementById("test-start-dialog").addEventListener("click", function(e) {
   e.target.close();
-  runTyper();
   typer.focus();
 });
 
