@@ -1,16 +1,55 @@
 import { CharaChorderDevice } from "/cc.js"
+import { randStr, createSHA256CodeChallenge } from "./auth.js";
 const { invoke } = window.__TAURI__?.core || {
   invoke: () => console.log("Tauri not available (running in a browser)")
 }
-const TESTBUFFERMINLENGTH = 300;
+const TESTBUFFERMINLENGTH = 800;
 const typeDisplay = document.getElementById("typer-display");
+sessionStorage.setItem("next_char_index", 0);
 function get_text() {
   let text = "This test is totally randomly generated text";
   return wrap_text(text);
 }
 
-window.onload = function() {
-  sessionStorage.setItem("next_char_index", 0);
+async function prepAuthLink(oauthElm) {
+    const hrefN = oauthElm.getAttributeNode("href");
+    const verifier = randStr();
+    sessionStorage.setItem('verifier', verifier);
+    let chal = await createSHA256CodeChallenge(verifier);
+    hrefN.value = new URL(`/auth?callback_url=${window.location.origin}&code_challenge=${chal}&code_challenge_method=S256`,hrefN.value);
+}
+
+window.onload = async function() {
+  const oauthElm=document.getElementById("oauth");
+  const code = (new URLSearchParams(window.location.search)).get("code");
+  const apiKey = sessionStorage.getItem('apiKey');
+  
+  if (code){
+    window.history.replaceState({}, '', window.origin);
+    const response = await fetch('https://openrouter.ai/api/v1/auth/keys', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        code: code,
+        code_verifier: sessionStorage.getItem('verifier'),
+        code_challenge_method: 'S256'
+      }),
+    });
+    const { apiKey } = await response.json();
+    sessionStorage.setItem('apiKey', apiKey);
+    setStatus(apiKey);
+    oauthElm.outerHTML = oauthElm.innerHTML;
+    oauthElm.textContent = "Remote LLM";
+    document.getElementById('remote-llm').checked = true;
+  } else if (apiKey) {
+    oauthElm.outerHTML = oauthElm.innerHTML;
+    oauthElm.textContent = "Remote LLM";
+    document.getElementById('remote-llm').checked = true;
+  } else {
+    prepAuthLink(oauthElm);
+  } 
 }
 
 function split_chords(s) {
@@ -133,12 +172,6 @@ typer.addEventListener("beforeinput", function(e) {
   }
 });
 
-document.getElementById('chara-connect-dialog').addEventListener('close', function(e) {
-  // document.getElementById("test-start-dialog").show();
-  runTyper();
-  typer.focus();
-});
-
 document.getElementById('chara-connect').addEventListener('click', async (e) => {
   e.preventDefault();
   const device = new CharaChorderDevice();
@@ -169,26 +202,27 @@ document.getElementById('chara-connect').addEventListener('click', async (e) => 
   }
 });
 
-function runTyper() {
+let typerInited = false;
+function initTyper() {
   const tgm = "test_gen_mode"
   if (!sessionStorage.getItem(tgm)) {
     sessionStorage.setItem(tgm, localStorage.getItem(tgm) ?? "random");
   }
 
   typeDisplay.append(get_text());
+  typerInited = true;
   charAt(0).id = "cursor"
-  
 }
 
-document.getElementById("test-start-dialog").addEventListener("click", function(e) {
+function unpause(e) {
+  if (!typerInited)
+    initTyper();
   e.target.close();
   typer.focus();
-});
-
-document.getElementById("test-pause-dialog").addEventListener("focus", function(e) {
-  e.target.close();
-  typer.focus();
-})
+}
+const pauseDialog = document.getElementById("test-pause-dialog");
+pauseDialog.addEventListener("focus", unpause);
+pauseDialog.addEventListener("click", unpause);
 
 document.getElementById("typer").addEventListener("blur", function(e) {
   document.getElementById("test-pause-dialog").show();

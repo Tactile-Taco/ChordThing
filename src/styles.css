@@ -18,6 +18,7 @@ select {
   --col_correct: #F7B931;
   --col_typo: #FF4D4D;
   --col_untyped: #0F1211;
+  --typer_lines: 8;
 
   font-family: "Atkinson Hyperlegible Mono", sans-serif;
   font-optical-sizing: auto;
@@ -41,11 +42,31 @@ select {
 
   display: grid;
   grid-template-columns: [full-width-start] minmax(var(--padding-inline), 1fr) [core-start] min(100% - (var(--padding-inline) * 2), var(--core-max-width)) [core-end] minmax(var(--padding-inline), 1fr) [full-width-end];
-  grid-template-rows: 60vh [typer-start] 8lh [typer-end];
+  grid-template-rows: [above-start] calc(50vh - var(--typer_lines) / 2 * 1lh) [above-end typer-start] calc(var(--typer_lines) * 1lh) [typer-end under-start];
 
-  * {
-    /* outline: solid; */
-  }
+  /* * { */
+  /* outline: solid; */
+  /* } */
+}
+
+#text-gen {
+  /* display: grid; */
+  grid-column: core;
+  grid-row: above;
+  /* width: 100%; */
+}
+
+/* footer { */
+/* position: fixed; */
+/* bottom: 0; */
+/* justify-self: center; */
+/* } */
+
+.app-grid>footer {
+  display: grid;
+  grid-row: under;
+  grid-column: core;
+  justify-self: center;
 }
 
 #typer {

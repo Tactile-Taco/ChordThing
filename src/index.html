@@ -3,28 +3,47 @@
 
 <head>
   <meta charset="UTF-8" />
+  <meta name="referrer" content="origin">
   <link rel="stylesheet" href="styles.css" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ChordMan</title>
-  <script type="module" src="/cc.js" defer></script>
-  <script type="module" src="/main.js" defer></script>
-  <script type="module" src="/tauri-ext.js" defer></script>
-  <script type="module" src="/htmx.min.js" defer></script>
+  <script type="module" src="cc.js" defer></script>
+  <script type="module" src="main.js" defer></script>
+  <script type="module" src="auth.js" defer></script>
+  <!-- <script type="module" src="fixi/fixi-custom.js" defer></script> -->
+  <!-- <script type="module" src="fixi/fixi-ext.js" defer></script> -->
+  <!-- <script type="module" src="tauri-ext.js" defer></script> -->
 </head>
 
-<body hx-ext="tauri" hx-boost="True">
+<body>
   <main class="app-grid">
+    <fieldset id="text-gen">
+      <legend>Choose test text generation method</legend>
+      <ul style="list-style-type:none">
+        <li>
+          <input type="radio" id="random-words" name="test-gen" value="R" checked>
+          <label for="random-words">Random words</label>
+        </li>
+        <li>
+          <input type="radio" id="local-llm" name="test-gen" value="L" disabled>
+          <label for="local-llm">Local LLM</label>
+        </li>
+        <li>
+          <input type="radio" id="remote-llm" name="test-gen" value="R">
+          <label for="remote-llm">
+            <a href="https://openrouter.ai" id="oauth">Authenticate with OpenRouter for Remote LLM
+            </a>
+          </label>
+        </li>
+      </ul>
+    </fieldset>
     <div id="typer" contenteditable="plaintext-only">
-      <dialog open id="chara-connect-dialog" class="overlay">
-        <form method="dialog">
-          <button id="chara-connect">connect</button>
-          <button id="chara-connect-skip">skip</button>
-        </form>
-      </dialog>
-      <dialog id="test-start-dialog">click here to start test</dialog>
-      <dialog id="test-pause-dialog">focus/click here to resume test</dialog>
+      <dialog id="test-pause-dialog" open>focus/click here to begin typing</dialog>
       <div id="typer-display"></div>
     </div>
+    <footer>
+      <button id="chara-connect">connect</button>
+    </footer>
   </main>
 </body>
 
