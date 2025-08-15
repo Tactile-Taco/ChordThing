@@ -55,14 +55,13 @@
 				send(elt, "finally", {cfg})
 			}
 			let doSwap = ()=>{
-				send(elt, "swapping", {cfg})
 				if (cfg.swap instanceof Function)
 					return cfg.swap(cfg)
 				else if (/(before|after)(begin|end)/.test(cfg.swap))
 					cfg.target.insertAdjacentHTML(cfg.swap, cfg.text)
 				else if(cfg.swap in cfg.target)
 					cfg.target[cfg.swap] = cfg.text
-				else throw cfg.swap
+				else if(cfg.swap !== 'none') throw cfg.swap
 			}
 			if (cfg.transition)
 				await cfg.transition(doSwap).finished

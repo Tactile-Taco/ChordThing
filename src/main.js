@@ -1,8 +1,5 @@
 import { CharaChorderDevice } from "/cc.js"
 import { randStr, createSHA256CodeChallenge } from "./auth.js";
-const { invoke } = window.__TAURI__?.core || {
-  invoke: () => console.log("Tauri not available (running in a browser)")
-}
 const TESTBUFFERMINLENGTH = 800;
 const typeDisplay = document.getElementById("typer-display");
 sessionStorage.setItem("next_char_index", 0);
@@ -39,7 +36,6 @@ window.onload = async function() {
     });
     const { apiKey } = await response.json();
     sessionStorage.setItem('apiKey', apiKey);
-    setStatus(apiKey);
     oauthElm.outerHTML = oauthElm.innerHTML;
     oauthElm.textContent = "Remote LLM";
     document.getElementById('remote-llm').checked = true;
