@@ -1,51 +1,10 @@
 import { CharaChorderDevice } from "/cc.js"
-import { randStr, createSHA256CodeChallenge } from "./auth.js";
 const TESTBUFFERMINLENGTH = 800;
 const typeDisplay = document.getElementById("typer-display");
 sessionStorage.setItem("next_char_index", 0);
 function get_text() {
   let text = "This test is totally randomly generated text";
   return wrap_text(text);
-}
-
-async function prepAuthLink(oauthElm) {
-    const hrefN = oauthElm.getAttributeNode("href");
-    const verifier = randStr();
-    sessionStorage.setItem('verifier', verifier);
-    let chal = await createSHA256CodeChallenge(verifier);
-    hrefN.value = new URL(`/auth?callback_url=${window.location.origin}&code_challenge=${chal}&code_challenge_method=S256`,hrefN.value);
-}
-
-window.onload = async function() {
-  const oauthElm=document.getElementById("oauth");
-  const code = (new URLSearchParams(window.location.search)).get("code");
-  const apiKey = sessionStorage.getItem('apiKey');
-  
-  if (code){
-    window.history.replaceState({}, '', window.origin);
-    const response = await fetch('https://openrouter.ai/api/v1/auth/keys', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        code: code,
-        code_verifier: sessionStorage.getItem('verifier'),
-        code_challenge_method: 'S256'
-      }),
-    });
-    const { apiKey } = await response.json();
-    sessionStorage.setItem('apiKey', apiKey);
-    oauthElm.outerHTML = oauthElm.innerHTML;
-    oauthElm.textContent = "Remote LLM";
-    document.getElementById('remote-llm').checked = true;
-  } else if (apiKey) {
-    oauthElm.outerHTML = oauthElm.innerHTML;
-    oauthElm.textContent = "Remote LLM";
-    document.getElementById('remote-llm').checked = true;
-  } else {
-    prepAuthLink(oauthElm);
-  } 
 }
 
 function split_chords(s) {
