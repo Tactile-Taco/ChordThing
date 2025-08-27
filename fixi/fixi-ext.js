@@ -61,7 +61,7 @@ document.addEventListener("fx:init", (evt)=>{
           elt.addEventListener("fx:config", (evt) => {
             const cfg = evt.detail.cfg;
             cfg.fetch = location.assign.bind(location);
-            cfg.action = new URL(`/auth?callback_url=${location.origin}&code_challenge=${chal}&code_challenge_method=S256`, resource).href;
+            cfg.action = new URL(`/auth?callback_url=${location}&code_challenge=${chal}&code_challenge_method=S256`, resource).href;
           })
         }).catch(err => send("error", {cfg:evt.detail.cfg, error:err}));
       })
