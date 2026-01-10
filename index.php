@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="referrer" content="origin">
+  <link rel="stylesheet" href="styles.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ChordMan</title>
+  <script type="module" src="cc.js" defer></script>
+  <script type="module" src="main.js" defer></script>
+  <script type="module" src="auth.js" defer></script>
+  <script type="module" src="fixi/fixi.js" defer></script>
+  <script type="module" src="fixi/fixi-ext.js" defer></script>
+</head>
+
+<body>
+  <main class="app-grid">
+    <fieldset id="text-gen">
+      <legend>Choose test text generation method</legend>
+      <ul style="list-style-type:none">
+        <li>
+          <input type="radio" id="random-words" name="test-gen" value="R" checked>
+          <label for="random-words">Random words</label>
+        </li>
+        <li>
+          <input type="radio" id="local-llm" name="test-gen" value="L" disabled>
+          <label for="local-llm">Local LLM</label>
+        </li>
+        <li>
+          <input type="radio" id="remote-llm" name="test-gen" value="R">
+          <label for="remote-llm" fx-action="https://openrouter.ai" fx-trigger="click" ext-fx-oauth="api/v1">
+            Authenticate with OpenRouter for Remote LLM
+            <!-- <a href="https://openrouter.ai" id="oauth">Authenticate with OpenRouter for Remote LLM -->
+            <!-- </a> -->
+          </label>
+        </li>
+      </ul>
+    </fieldset>
+    <div id="typer" contenteditable="plaintext-only">
+      <dialog id="test-pause-dialog" open>focus/click here to begin typing</dialog>
+      <div id="typer-display"></div>
+    </div>
+    <footer>
+      <button id="chara-connect">connect</button>
+    </footer>
+  </main>
+</body>
+
+</html>
