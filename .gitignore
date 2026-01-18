@@ -12,6 +12,7 @@ dist
 dist-ssr
 *.local
 
+Gemfile
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
@@ -25,3 +26,4 @@ dist-ssr
 .aider.chat.history.md
 .aider.input.history
 .aider.tags.cache.v4/*
+
