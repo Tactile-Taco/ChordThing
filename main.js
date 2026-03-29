@@ -1,4 +1,4 @@
-import { CharaChorderDevice } from "/cc.js"
+import { CharaChorderDevice } from "./cc.js"
 const TESTBUFFERMINLENGTH = 800;
 const typeDisplay = document.getElementById("typer-display");
 sessionStorage.setItem("next_char_index", 0);
