@@ -47,7 +47,7 @@ function wrap_text(s) {
       const openingRp = document.createElement('rp');
       openingRp.innerText = '(';
       const rt = document.createElement('rt');
-      const chord = localStorage.getItem(chords)?.find(chord => chord.phrase === token)?.chord;
+      const chord = localStorage.getItem("chords")?.find(chord => chord.phrase === token)?.chord;
       rt.innerText = chord || '';
       const closingRp = document.createElement('rp');
       closingRp.innerText = ')';
