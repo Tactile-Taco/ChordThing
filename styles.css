@@ -102,6 +102,7 @@ select {
   height: 8lh;
   scrollbar-width: none;
   grid-column: core;
+  padding-top: 0.6em;
 }
 
 char {
