@@ -1,4 +1,4 @@
-import { CharaChorderDevice } from "/cc.js"
+import { CharaChorderDevice } from "./cc.js"
 const TESTBUFFERMINLENGTH = 800;
 const typeDisplay = document.getElementById("typer-display");
 sessionStorage.setItem("next_char_index", 0);
@@ -7,18 +7,21 @@ function get_text() {
   return wrap_text(text);
 }
 
-function split_chords(s) {
-  //TODO: find all chords in s:String and return split. You might need to add another param for chord list or make it global...
-  // return [{isChord:false, str:s}];
+function* split_chords(s) {
   const escaped = JSON.parse(localStorage.getItem("chords")).map(chord => chord.phrase_regex_escaped);
   if (escaped && escaped.length) {
+    let isChord = false;
     const chordReg = new RegExp(`\\b(${escaped.join('|')})\\b`, 'i'); //this should really be generated when chords are generated and passed in...
-    return s.split(chordReg);
-  }
-  return [s]; 
+    for (const chunk of s.split(chordReg)) {
+      if (chunk.length !== 0) {
+        yield {chordy: isChord, token: chunk};
+      }
+      isChord = !isChord;
+    }
+  } else {yield {chordy: isChord, token: s}}
 }
 
-function wrap_token(token, tokenElement, frag, next_index) {
+function wrap_token(token, tokenElement, frag, next_index, chordy) {
   for (let char of token) {
     const charNode = document.createElement('char');
     charNode.textContent = char;
@@ -32,18 +35,23 @@ function wrap_token(token, tokenElement, frag, next_index) {
 }
 
 function wrap_text(s) {
-  //TODO:
-  // return s and all chords in s:String and return split. You might need to add another param for chord list or make it global...t
   let next_index = Number(sessionStorage.getItem("next_char_index") ?? 0);
   if (next_index) s = " " + s;
   s = split_chords(s);
   const fragment = document.createDocumentFragment()
-  let chord = false;
-  for (const token of s) {
+  for (const {chordy, token} of s) {
     console.log(token);
-    if (chord) {
+    if (chordy) {
       const tokenWrap = document.createElement('ruby');
-      next_index = wrap_token(token, tokenWrap, fragment, next_index);
+      next_index = wrap_token(token, tokenWrap, fragment, next_index, chordy);
+      const openingRp = document.createElement('rp');
+      openingRp.innerText = '(';
+      const rt = document.createElement('rt');
+      const chord = JSON.parse(localStorage.getItem("chords"))?.find(chord => chord.phrase === token)?.chord;
+      rt.innerText = chord || '';
+      const closingRp = document.createElement('rp');
+      closingRp.innerText = ')';
+      tokenWrap.append(openingRp, rt, closingRp);
     } else {
       //I have to do all this because text wrapping is wack in chrome unless I wrap words too
       for (const word of token.split(/( )/)) {
@@ -56,11 +64,10 @@ function wrap_text(s) {
           fragment.appendChild(space);
         } else {
           const wordWrap = document.createElement('word');
-          next_index = wrap_token(word, wordWrap, fragment, next_index);
+          next_index = wrap_token(word, wordWrap, fragment, next_index, chordy);
         }
       }
     }
-    chord = !chord;
   }
   sessionStorage.setItem("next_char_index", next_index);
   return fragment; 
@@ -147,8 +154,8 @@ document.getElementById('chara-connect').addEventListener('click', async (e) => 
     localStorage.setItem("chords", JSON.stringify(chords));
     console.log("Chords:", chords);
 
-    document.getElementById("chara-connect-dialog").close();
-    document.getElementById("test-start-dialog").show();
+    document.getElementById("chara-connect-dialog")?.close();
+    document.getElementById("test-start-dialog")?.show();
   } catch (error) {
     console.error("Error:", error);
   } finally {
