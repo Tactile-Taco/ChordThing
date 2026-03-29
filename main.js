@@ -1,191 +1,22 @@
-import { CharaChorderDevice } from "./cc.js"
-const TESTBUFFERMINLENGTH = 800;
-const typeDisplay = document.getElementById("typer-display");
+// main.js - Entry point for ChordThing application
+
+import { Typer, setupGlobalKeyboardHandling } from "./typer.js";
+import { setupConnectButton } from "./device.js";
+
+// Initialize session storage
 sessionStorage.setItem("next_char_index", 0);
-function get_text() {
-  let text = "This test is totally randomly generated text";
-  return wrap_text(text);
-}
 
-function* split_chords(s) {
-  const escaped = JSON.parse(localStorage.getItem("chords")).map(chord => chord.phrase_regex_escaped);
-  if (escaped && escaped.length) {
-    let isChord = false;
-    const chordReg = new RegExp(`\\b(${escaped.join('|')})\\b`, 'i'); //this should really be generated when chords are generated and passed in...
-    for (const chunk of s.split(chordReg)) {
-      if (chunk.length !== 0) {
-        yield {chordy: isChord, token: chunk};
-      }
-      isChord = !isChord;
-    }
-  } else {yield {chordy: isChord, token: s}}
-}
+// Initialize typer
+const typeDisplay = document.getElementById("typer-display");
+const typer = new Typer(typeDisplay, sessionStorage);
 
-function wrap_token(token, tokenElement, frag, next_index, chordy) {
-  for (let char of token) {
-    const charNode = document.createElement('char');
-    charNode.textContent = char;
-    charNode.dataset.val = char;
-    charNode.dataset.index = next_index++;
-    charNode.dataset.typed = "untyped";
-    tokenElement.appendChild(charNode);
-  }
-  frag.appendChild(tokenElement);
-  return next_index;
-}
+// Setup global keyboard handling
+setupGlobalKeyboardHandling(typer);
 
-function wrap_text(s) {
-  let next_index = Number(sessionStorage.getItem("next_char_index") ?? 0);
-  if (next_index) s = " " + s;
-  s = split_chords(s);
-  const fragment = document.createDocumentFragment()
-  for (const {chordy, token} of s) {
-    console.log(token);
-    if (chordy) {
-      const tokenWrap = document.createElement('ruby');
-      next_index = wrap_token(token, tokenWrap, fragment, next_index, chordy);
-      const openingRp = document.createElement('rp');
-      openingRp.innerText = '(';
-      const rt = document.createElement('rt');
-      const chord = JSON.parse(localStorage.getItem("chords"))?.find(chord => chord.phrase === token)?.chord;
-      rt.innerText = chord || '';
-      const closingRp = document.createElement('rp');
-      closingRp.innerText = ')';
-      tokenWrap.append(openingRp, rt, closingRp);
-    } else {
-      //I have to do all this because text wrapping is wack in chrome unless I wrap words too
-      for (const word of token.split(/( )/)) {
-        if(word === ' '){
-          const space = document.createElement('char');
-          space.textContent = ' ';
-          space.dataset.val = ' ';
-          space.dataset.index = next_index++;
-          space.dataset.typed = 'untyped';
-          fragment.appendChild(space);
-        } else {
-          const wordWrap = document.createElement('word');
-          next_index = wrap_token(word, wordWrap, fragment, next_index, chordy);
-        }
-      }
-    }
-  }
-  sessionStorage.setItem("next_char_index", next_index);
-  return fragment; 
-}
+// Setup device connection button
+setupConnectButton('chara-connect');
 
-var typer = document.getElementById("typer");
-function charAt(index){
-  return typeDisplay.querySelector(`[data-index="${index}"]`);
-}
-
-typer.addEventListener("mousedown", function (e) {
-  e.preventDefault();
-  e.stopPropagation();
-}, { capture: false });
-
-typer.addEventListener("focus", function(e) {
-  window.getSelection().selectAllChildren(document.getElementById("cursor"));
-});
-
-window.addEventListener("keydown", function(e) {
-  if (e.code === "Space" && e.target === document.body) {
-    e.preventDefault();
-  } else if (typer.contains(document.activeElement) && e.code.startsWith("Arrow")) {
-    e.preventDefault();
-  }
-});
-
-typer.addEventListener("beforeinput", function(e) {
-  e.preventDefault();
-  let reverse = false;
-  switch (e.inputType) {
-    case "deleteContentBackward":
-      reverse = true;
-    case "insertText":
-      const cursor = document.getElementById("cursor");
-      const move = charAt(Number(cursor.dataset.index) + (reverse? -1 : 1))
-      if (!move) {
-        console.log("reached typer boundary");
-        break;
-      }
-      cursor.removeAttribute('id');
-      move.id = "cursor";
-      window.getSelection().selectAllChildren(move);    
-
-      if (reverse) {
-        move.removeAttribute("class");
-        move.textContent = move.dataset.val;
-        move.dataset.typed = "untyped";
-      } else {
-        cursor.dataset.typed = e.data;
-        cursor.textContent = cursor.dataset.typed;
-        cursor.setAttribute("class", cursor.dataset.val === cursor.dataset.typed? "correct" : "typo");
-
-        while (typeDisplay.querySelectorAll('[data-typed="untyped"]').length < TESTBUFFERMINLENGTH){
-          typeDisplay.append(get_text());
-        }
-      }
-
-      move.scrollIntoView(true);
-
-      break;
-    default:
-      console.log(`invalid input type used in typer: ${e.inputType}`);
-  }
-});
-
-document.getElementById('chara-connect').addEventListener('click', async (e) => {
-  e.preventDefault();
-  const device = new CharaChorderDevice();
-
-  try {
-    await device.connect();
-    console.log("Connected to device");
-
-    const os = await device.getOperatingSystem();
-    localStorage.setItem("os", os);
-    console.log("Operating System:", JSON.stringify(os));
-
-    const keymap = await device.getKeymap();
-    localStorage.setItem("keymap", JSON.stringify(keymap));
-    console.log("Keymap:", keymap);
-
-    const chords = await device.listChords();
-    localStorage.setItem("chords", JSON.stringify(chords));
-    console.log("Chords:", chords);
-
-    document.getElementById("chara-connect-dialog")?.close();
-    document.getElementById("test-start-dialog")?.show();
-  } catch (error) {
-    console.error("Error:", error);
-  } finally {
-    await device.disconnect();
-    console.log("Disconnected from device");
-  }
-});
-
-let typerInited = false;
-function initTyper() {
-  const tgm = "test_gen_mode"
-  if (!sessionStorage.getItem(tgm)) {
-    sessionStorage.setItem(tgm, localStorage.getItem(tgm) ?? "random");
-  }
-
-  typeDisplay.append(get_text());
-  typerInited = true;
-  charAt(0).id = "cursor"
-}
-
-function unpause(e) {
-  if (!typerInited)
-    initTyper();
-  e.target.close();
-  typer.focus();
-}
+// Setup pause dialog
 const pauseDialog = document.getElementById("test-pause-dialog");
-pauseDialog.addEventListener("focus", unpause);
-pauseDialog.addEventListener("click", unpause);
-
-document.getElementById("typer").addEventListener("blur", function(e) {
-  document.getElementById("test-pause-dialog").show();
-})
+pauseDialog.addEventListener("focus", (e) => typer.unpause(e));
+pauseDialog.addEventListener("click", (e) => typer.unpause(e));
