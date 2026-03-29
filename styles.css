@@ -109,6 +109,7 @@ char {
   color: var(--col_untyped);
   margin: 0px;
   padding: 0px;
+  scroll-margin-top: 0.6em;
 
   &.typo {
     color: var(--col_typo);
