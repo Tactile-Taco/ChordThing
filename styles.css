@@ -22,6 +22,7 @@ select {
   --primary_text: hsl(30 100 35);
   --chorded_text: hsl(60 100 35);
   --rubricated_text: hsl(0 100 35);
+  --background: hsl(0 0 90);
 
   font-family: "Atkinson Hyperlegible Mono", sans-serif;
   font-optical-sizing: auto;
@@ -32,7 +33,8 @@ select {
   color: #C8C8DA;
   text-rendering: optimizeLegibility;
 
-  background-color: #5D7A6F;
+  /* background-color: #5D7A6F; */
+  background-color: var(--background);
 
   --char-unit: 1.05em;
   -webkit-font-smoothing: antialiased;
