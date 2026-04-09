@@ -19,6 +19,9 @@ select {
   --col_typo: #FF4D4D;
   --col_untyped: #0F1211;
   --typer_lines: 8;
+  --primary_text: hsl(30 100 35);
+  --chorded_text: hsl(60 100 35);
+  --rubricated_text: hsl(0 100 35);
 
   font-family: "Atkinson Hyperlegible Mono", sans-serif;
   font-optical-sizing: auto;
@@ -107,20 +110,25 @@ select {
 }
 
 char {
-  color: var(--col_untyped);
+  color: var(--primary_text);
   margin: 0px;
   padding: 0px;
+  opacity: 0.4;
+  transition: all 0.1s ease;
   
   &.typo {
-    color: var(--col_typo);
-
+    color: var(--rubricated_text);
     &[data-typed=" "] {
-      background-color: var(--col_typo);
+      background-color: var(--rubricated_text);
     }
   }
 
   &.correct {
-    color: var(--col_correct);
+    opacity: 0.8;
+
+    &.chorded {
+      color: var(--chorded_text)
+    } 
   }
 }
 
