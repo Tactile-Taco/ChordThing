@@ -74,7 +74,7 @@ export class Typer {
           }
         }
 
-        move.scrollIntoView(true);
+        move.scrollIntoView({ block: 'start' });
         break;
 
       default:
@@ -84,7 +84,7 @@ export class Typer {
 
   getTextFragment() {
     const text = "This test is totally randomly generated text";
-    return wrapText(text, this.sessionStorage);
+    return wrapText(text);
   }
 
   init() {

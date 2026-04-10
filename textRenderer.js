@@ -15,7 +15,7 @@ export function wrapToken(token, tokenElement, frag, nextIndex, chordy) {
   return nextIndex;
 }
 
-export function wrapText(text, sessionStorage) {
+export function wrapText(text) {
   let nextIndex = Number(sessionStorage.getItem("next_char_index") ?? 0);
   if (nextIndex) text = " " + text;
   

@@ -115,8 +115,8 @@ select {
   max-height: calc(var(--typer_lines) * 1lh + .1lh);
   scrollbar-width: none;
   grid-column: core;
-  padding-top: 0.2lh;
-  scroll-padding-top: 0.2lh;
+  padding-top: 0.3lh;
+  scroll-padding-top: 1.35lh;
   opacity: 0.4;
 }
 
@@ -140,7 +140,7 @@ char {
   }
 }
 
-ruby {
+ruby rt{
   font-size: 0.6em;
   color: var(--color-text-chorded);
   letter-spacing: 0.05em;
