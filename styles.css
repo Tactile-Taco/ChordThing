@@ -15,23 +15,24 @@ select {
 
 :root {
   --typed_chars: 6;
-  --col_correct: #F7B931;
-  --col_typo: #FF4D4D;
-  --col_untyped: #0F1211;
-  --typer_lines: 8;
-  --primary_text: hsl(30 100 35);
-  --chorded_text: hsl(60 100 35);
-  --rubricated_text: hsl(0 100 35);
-  --background: hsl(0 0 90);
+  --typer_lines: 7;
+  --background: #6a4444;
 
-  font-family: "Atkinson Hyperlegible Mono", sans-serif;
-  font-optical-sizing: auto;
-  font-weight: 400;
-  font-style: normal;
-  font-size: xx-large;
-  font-synthesis: none;
-  color: #C8C8DA;
+  --color-chorded: #FFD700;
+  --color-chorded-light: #e84860;
+  --color-chorded-glow: rgba(196, 30, 58, 0.4);
+  
+  --color-text-primary: #efe9dc;
+  --color-text-secondary: #d0c5bb;
+  --color-text-muted: #e3924c;
+  --color-text-disabled: #5c5248;
+  --color-text-error: #EF4444;
+  --color-error-background: rgba(239, 68, 68, 0.15);
+
+
+  --font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
   text-rendering: optimizeLegibility;
+  --typing-font-size: 1.5rem;
 
   /* background-color: #5D7A6F; */
   background-color: var(--background);
@@ -43,7 +44,12 @@ select {
 
 .app-grid {
   --padding-inline: 1em;
-  --core-max-width: 60ch;
+  --core-max-width: 90ch;
+
+  /* test-taking font is used to measure the grid layout but should be overridden for element diversity */
+  font-family: var(--font-mono);
+  font-size: var(--typing-font-size);
+  line-height: var(--typing-line-height);
 
   display: grid;
   grid-template-columns: [full-width-start] minmax(var(--padding-inline), 1fr) [core-start] min(100% - (var(--padding-inline) * 2), var(--core-max-width)) [core-end] minmax(var(--padding-inline), 1fr) [full-width-end];
@@ -104,32 +110,30 @@ select {
   white-space: pre-wrap;
   text-wrap-style: stable;
   position: relative;
-  height: 8lh;
+  max-height: calc(var(--typer_lines) * 1lh + .1lh);
   scrollbar-width: none;
   grid-column: core;
-  padding-top: 0.4em;
-  scroll-padding-top: 0.4em;
+  padding-top: 0.2lh;
+  scroll-padding-top: 0.2lh;
+  opacity: 0.4;
 }
 
 char {
-  color: var(--primary_text);
+  color: var(--color-text-primary);
   margin: 0px;
   padding: 0px;
-  opacity: 0.4;
   transition: all 0.1s ease;
   
   &.typo {
-    color: var(--rubricated_text);
-    &[data-typed=" "] {
-      background-color: var(--rubricated_text);
-    }
+    color: var(--color-text-error);
+    background-color: --color-error-background;
   }
 
   &.correct {
     opacity: 0.8;
 
     &.chorded {
-      color: var(--chorded_text)
+      color: var(--color-chorded)
     } 
   }
 }
