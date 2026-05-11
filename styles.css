@@ -17,6 +17,7 @@ select {
   --typed_chars: 6;
   --typer_lines: 4;
   --background: #6a4444;
+  --typer-opacity: 0.5;
 
   --color-text-chorded: #FFD700;
   --color-text-chorded-light: #e84860;
@@ -117,7 +118,7 @@ select {
   grid-column: core;
   padding-top: 0.3lh;
   scroll-padding-top: 1.35lh;
-  opacity: 0.4;
+  background-color: color-mix(in srgb, var(--background) var(--typer-opacity), transparent);
 }
 
 char {
@@ -125,15 +126,14 @@ char {
   margin: 0px;
   padding: 0px;
   transition: all 0.1s ease;
-  
+  opacity: 0.6;
   &.typo {
     color: var(--color-text-error);
     background-color: --color-error-background;
+    opacity: 0.3;
   }
-
   &.correct {
-    opacity: 0.8;
-
+    opacity: 0.9;
     &.chorded {
       color: var(--color-chorded)
     } 
