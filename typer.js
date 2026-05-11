@@ -110,9 +110,8 @@ export class Typer {
 // Global keyboard shortcuts
 export function setupGlobalKeyboardHandling(typerInstance) {
   window.addEventListener("keydown", (e) => {
-    if (e.code === "Space" && e.target === document.body) {
-      e.preventDefault();
-    } else if (typerInstance.typerElement.contains(document.activeElement) && e.code.startsWith("Arrow")) {
+    if ((e.code === "Space" && e.target === document.body)
+       || (typerInstance.typerElement.contains(document.activeElement) && e.code.startsWith("Arrow"))) {
       e.preventDefault();
     }
   });
