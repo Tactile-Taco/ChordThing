@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ChordMan</title>
+  <link rel="stylesheet" href="/src/style.css" />
+  <script type="module" src="https://cdn.jsdelivr.net/gh/starfederation/datastar@v1.0.0-RC.8/bundles/datastar.js"></script>
+  <script type="module" src="/src/main.ts"></script>
+</head>
+<body>
+  <main class="app-grid" data-signals:test-gen-mode="'random'">
+    <fieldset id="text-gen">
+      <legend>Choose test text generation method</legend>
+      <ul style="list-style-type:none">
+        <li>
+          <input type="radio" id="random-words" name="test-gen" value="random"
+                 data-on:change="$testGenMode = 'random'; @post('/api/set-test-gen')" checked>
+          <label for="random-words">Random words</label>
+        </li>
+        <li>
+          <input type="radio" id="local-llm" name="test-gen" value="local"
+                 data-on:change="$testGenMode = 'local'; @post('/api/set-test-gen')" disabled>
+          <label for="local-llm">Local LLM</label>
+        </li>
+        <li>
+          <input type="radio" id="remote-llm" name="test-gen" value="remote"
+                 data-on:change="$testGenMode = 'remote'; @post('/api/set-test-gen')">
+          <label for="remote-llm">Remote LLM</label>
+        </li>
+      </ul>
+    </fieldset>
+    <div id="typer" contenteditable="plaintext-only">
+      <dialog id="test-pause-dialog" open>focus/click here to begin typing</dialog>
+      <div id="typer-display"></div>
+    </div>
+    <footer>
+      <button id="chara-connect">connect</button>
+    </footer>
+  </main>
+</body>
+</html>

@@ -1,0 +1,139 @@
+@import url('https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Mono:ital,wght@0,200..800;1,200..800&display=swap');
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+input,
+button,
+textarea,
+select {
+  font: inherit;
+}
+
+:root {
+  --typed_chars: 6;
+  --typer_lines: 4;
+  --background: #6a4444;
+  --typer-opacity: 0.5;
+
+  --color-text-chorded: #FFD700;
+  --color-text-chorded-light: #e84860;
+  --color-text-chorded-glow: rgba(196, 30, 58, 0.4);
+
+  --color-text-primary: #efe9dc;
+  --color-text-secondary: #d0c5bb;
+  --color-text-muted: #e3924c;
+  --color-text-disabled: #5c5248;
+  --color-text-error: #EF4444;
+  --color-error-background: rgba(239, 68, 68, 0.15);
+  --typing-line-height: 1.625;
+
+  --font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+  text-rendering: optimizeLegibility;
+  --typing-font-size: 1.5rem;
+
+  background-color: var(--background);
+
+  --char-unit: 1.05em;
+  -webkit-font-smoothing: antialiased;
+}
+
+.app-grid {
+  --padding-inline: 1em;
+  --core-max-width: 45ch;
+
+  font-family: var(--font-mono);
+  font-size: var(--typing-font-size);
+  line-height: var(--typing-line-height);
+
+  display: grid;
+  grid-template-columns: [full-width-start] minmax(var(--padding-inline), 1fr) [core-start] min(100% - (var(--padding-inline) * 2), var(--core-max-width)) [core-end] minmax(var(--padding-inline), 1fr) [full-width-end];
+  grid-template-rows: [above-start] calc(50vh - var(--typer_lines) / 2 * 1lh) [above-end typer-start] calc(var(--typer_lines) * 1lh) [typer-end under-start];
+}
+
+#text-gen {
+  grid-column: core;
+  grid-row: above;
+}
+
+.app-grid > footer {
+  display: grid;
+  grid-row: under;
+  grid-column: core;
+  justify-self: center;
+}
+
+#typer {
+  display: grid;
+  grid-row: typer;
+  outline: none;
+  position: relative;
+  grid-template: inherit;
+  grid-column: full-width;
+}
+
+#typer dialog[open] {
+  display: grid;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  grid-column: full-width;
+  z-index: 1;
+  background-color: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(5px) contrast(70%) drop-shadow(15px 0px gray);
+}
+
+#typer dialog[open] * {
+  place-self: center;
+}
+
+#typer-display {
+  overflow-y: scroll;
+  white-space: pre-wrap;
+  text-wrap-style: stable;
+  position: relative;
+  max-height: calc(var(--typer_lines) * 1lh + .1lh);
+  scrollbar-width: none;
+  grid-column: core;
+  padding-top: 0.3lh;
+  scroll-padding-top: 1.35lh;
+  background-color: color-mix(in srgb, var(--background) var(--typer-opacity), transparent);
+}
+
+char {
+  color: var(--color-text-primary);
+  margin: 0px;
+  padding: 0px;
+  transition: all 0.1s ease;
+  opacity: 0.6;
+}
+
+char.typo {
+  color: var(--color-text-error);
+  background-color: var(--color-error-background);
+  opacity: 0.3;
+}
+
+char.correct {
+  opacity: 0.9;
+}
+
+char.correct.chorded {
+  color: var(--color-text-chorded);
+}
+
+ruby rt {
+  font-size: 0.6em;
+  color: var(--color-text-chorded);
+  letter-spacing: 0.05em;
+}
+
+kbd > key {
+  border-radius: 3px;
+  padding: 0px 1px;
+  border: 1px solid black;
+  margin-inline: 1px;
+}
