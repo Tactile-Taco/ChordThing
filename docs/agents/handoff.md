@@ -6,8 +6,8 @@
 |-------|-------|
 | Date | 2026-05-12 |
 | Phase | Setup complete; ready to grill |
-| Next topic | **A — Tauri / Desktop scope** |
-| Completed topics | (none) |
+| Next topic | **All topics complete** |
+| Completed topics | **A** (Tauri deferred), **B** (SQLite chosen, features deferred), **C** (Auth deferred until CI/CD; Ory + anonymous sessions designed), **D** (Text generation deferred; ServerGenerator + ChordPracticeGenerator are MVP; candidates identified), **E** (FSRS/CPF entire learning system deferred; terms archived), **F** (Event interface: sequence-level emission designed; granular events abandoned; implementation deferred), **G** (Datastar versions compatible; crate kept; SSE planned for data streaming), **H** (data-ignore-morph verified in Datastar v1.0.1 docs), **I** (Four-context layout: frontend/backend/shared/deferred), **J** (Agents.md renamed to AGENTS.md) |
 
 ## Where We Are
 
@@ -20,31 +20,38 @@ Matt Pocock skill setup is done. Three planning documents (PLAN.md, ARCHITECTURE
 
 30 items were auto-resolved. 10 remain.
 
-## Next Topic: A — Tauri / Desktop scope
+## Next Topic: All topics complete
 
-**Question:** Is Tauri a current concern or deferred? PLAN.md says P0 but repo has zero Tauri code.
+All 10 grilling topics (A through J) have been resolved. The distillation is complete.
 
-**Relevant files to read:**
-- `frontend/CONTEXT.md` (contains Tauri references)
-- `backend/CONTEXT.md` (contains Tauri references)
-- `docs/agents/distillation-status.md` (topic A)
+**Summary of all decisions:**
+- **A** — Tauri deferred until web app is feature-complete
+- **B** — SQLite chosen; PostgreSQL aspirational; all DB features deferred
+- **C** — Auth deferred until CI/CD; Ory + anonymous sessions designed
+- **D** — Text generation deferred; ServerGenerator + ChordPracticeGenerator are MVP
+- **E** — FSRS/CPF entire learning system deferred; terms archived
+- **F** — Event interface: sequence-level emission designed; granular events abandoned
+- **G** — Datastar versions compatible; crate kept; SSE planned for data streaming
+- **H** — data-ignore-morph verified in Datastar v1.0.1 docs
+- **I** — Four-context layout: frontend/backend/shared/deferred
+- **J** — Agents.md renamed to AGENTS.md
 
-**Expected outcome:** Decision on whether Tauri stays in glossary/invariants or gets removed/marked planned. Update both CONTEXT.md files accordingly.
+**Expected outcome:** Export this session. Planning distillation phase is complete.
 
 ## Topic Queue (Remaining)
 
 | # | Topic | Status |
 |---|-------|--------|
-| A | Tauri / Desktop scope | **Next** |
-| B | Database — SQLite vs PostgreSQL | Pending |
-| C | Auth / Users — PKCE, subscriptions | Pending |
-| D | LLM Integration — text generation | Pending |
-| E | FSRS / Challenge Point — learning system | Pending |
-| F | Event Interface — Typer emits events? | Pending |
-| G | Datastar version mismatch | Pending |
-| H | data-ignore-morph attribute | Pending |
-| I | Context split — need shared/ context? | Pending |
-| J | Agents.md vs CLAUDE.md rename | Pending |
+|| A | Tauri / Desktop scope | **Deferred** |
+|| B | Database — SQLite vs PostgreSQL | **Resolved** |
+|| C | Auth / Users — PKCE, subscriptions | **Resolved** |
+|| D | LLM Integration — text generation | **Resolved** |
+|| E | FSRS / Challenge Point — learning system | **Resolved** |
+|| F | Event Interface — Typer emits events? | **Resolved** |
+|| G | Datastar version mismatch | **Resolved** |
+|| H | `data-ignore-morph` attribute | **Resolved** |
+|| I | Context split — need shared/ context? | **Resolved** |
+|| J | Agents.md vs CLAUDE.md rename | **Resolved** |
 
 ## How to Continue
 

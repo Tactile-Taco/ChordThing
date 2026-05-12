@@ -58,7 +58,7 @@
 
 ## Needs Grilling (Unresolved / Inconsistent / Ambiguous)
 
-### A. Tauri / Desktop — Is this in scope for the current codebase?
+### A. Tauri / Desktop — Deferred
 
 | Source | Claim |
 |--------|-------|
@@ -66,7 +66,9 @@
 | ARCHITECTURE.md | "Tauri app shell (desktop)" — listed under "What Stayed" |
 | Actual repo | No `desktop/`, `src-tauri/`, or Tauri config exists |
 
-**Question:** Is Tauri a current concern, or deferred? The PLAN.md says P0 but the repo has zero Tauri code. Should I remove Tauri references from CONTEXT.md, or mark as planned?
+**Resolution:** Deferred until web app is feature-complete. Three-backend contract stands as aspirational architecture — new features must not preclude a future Tauri port. Hardware detection scoped to WebGPU tier only; Tauri-specific detection deferred.
+
+**Updated in:** `frontend/CONTEXT.md` (Three-backend contract), `backend/CONTEXT.md` (App mode, Hardware capability detection)
 
 ---
 
@@ -78,11 +80,18 @@
 | ARCHITECTURE.md | "PostgreSQL — all sessions, chord attempts, mastery" (under "Server Source of Truth") |
 | Actual repo | No database code, no sqlx, no migrations |
 
-**Question:** Is the backend currently stateless (just serving static files + proxying), or should I add sqlx now? The `backend/Cargo.toml` has no database dependency.
+**Resolution:** SQLite chosen as starter database. PostgreSQL references are aspirational/scale planning. All database-dependent backend features marked **deferred** in `backend/CONTEXT.md`. API layer (typing sequences) will be designed and iterated first; schema will be derived from stabilized API shapes. sqlx will be added when the first API endpoint needs persistence.
+
+**Key decisions:**
+- "Sessions" concept replaced with "typing sequences" (contiguous bursts). See ADR 0002.
+- Raw typing events sent by frontend; chord detection deferred to backend data cleaning pipeline.
+- Backend glossary terms for FSRS, Challenge Point, mastery, etc. marked "Backend implementation deferred."
+
+**Updated in:** `backend/CONTEXT.md` (deferred markers, new typing sequence terms), `docs/adr/0002-typing-sequence-api.md` (created)
 
 ---
 
-### C. Auth / Users — Is there any auth at all right now?
+### C. Auth / Users — Deferred until CI/CD + test harnesses are in place
 
 | Source | Claim |
 |--------|-------|
@@ -90,11 +99,23 @@
 | ARCHITECTURE.md | Subscription tiers (Free / Pro $4.99 / Coach $9.99) |
 | Actual repo | No auth code, no user model, no session middleware |
 
-**Question:** Is auth deferred, or should the backend start with anonymous sessions? The current `AppState` only has `test_gen_mode: String`.
+**Resolution:** Auth is NOT fully deferred — it is a near-term priority, but it depends on CI/CD and test harnesses being in place first. Priority stack:
+1. CI/CD + test harnesses (foundational)
+2. Device connection status (already mostly implemented; good test harness candidate)
+3. Typing sequence API + Auth design (parallel tracks, both touch CI/CD)
+
+**Key decisions:**
+- Anonymous sessions: client-generated `anonymous_id` in `localStorage`, sent as `X-Anonymous-ID` header. Data migrates to real account on signup/login.
+- Ory ecosystem for auth (Kratos for identity, Hydra for OAuth2/OIDC).
+- PKCE is for OpenRouter OAuth (BYOK), not primary ChordThing login.
+- Subscription tiers are aspirational and subject to change.
+- Device connection and auth are independent feature filters.
+
+**Updated in:** `frontend/CONTEXT.md` (auth terms clarified, deferred markers), `backend/CONTEXT.md` (auth terms clarified, deferred markers), `docs/adr/0003-auth-anonymous-design.md` (created), `docs/adr/0004-ci-cd-test-harness.md` (created)
 
 ---
 
-### D. LLM Integration — What is the actual plan for text generation?
+### D. LLM Integration — Deferred until after CI/CD + auth; candidates identified
 
 | Source | Claim |
 |--------|-------|
@@ -102,11 +123,22 @@
 | ARCHITECTURE.md | Three-backend contract: Native Rust / WebLLM / Server |
 | Actual repo | `getTextFragment()` returns hardcoded string |
 
-**Question:** Is the immediate next step to implement a real text generator (even if just random words from a list), or is the hardcoded string sufficient for now? The radio buttons in the UI suggest "local" and "remote" are intended to work.
+**Resolution:** Hardcoded string stays for now but must be expanded. Text generation is NOT the immediate priority — CI/CD and auth come first. However, LLM providers are identified as "candidates" (not deferred) for future happy-path determination.
+
+**Key decisions:**
+- `ServerGenerator` (backend LLM API) and `ChordPracticeGenerator` (chord insertion) are MVP.
+- `RandomWordsGenerator` is test-harness-only; uncertain for production.
+- `WebLLMGenerator` and local native LLM are deferred — not MVP.
+- LLM providers (Zhipu, Groq, DeepSeek, Cerebras, Gemini, Cloudflare, Qwen, OpenRouter) are candidates. Happy path TBD via research.
+- Multi-provider delegation chain is advanced configuration, not MVP.
+- Chord library history is a new requirement for data model.
+- Typing sequence API requires device connection + chord library.
+
+**Updated in:** `frontend/CONTEXT.md` (generator terms split), `backend/CONTEXT.md` (provider candidates, delegation chain marked advanced), `docs/adr/0005-text-generation-llm-integration.md` (created)
 
 ---
 
-### E. FSRS / Challenge Point / Spaced Repetition — Backend or frontend?
+### E. FSRS / Challenge Point / Spaced Repetition — Deferred; terms moved to archive
 
 | Source | Claim |
 |--------|-------|
@@ -114,60 +146,119 @@
 | ARCHITECTURE.md | "Server source of truth" for FSRS scheduling |
 | Actual repo | No FSRS code anywhere |
 
-**Question:** Is the learning system (FSRS + Challenge Point) deferred until after basic typing works, or should it be designed now? The TEST_ARCHITECTURE.md mentions the engine should emit events for the wrapper to aggregate — but there's no wrapper yet.
+**Resolution:** Entire learning system (FSRS + Challenge Point + all dependent terms) is deferred. Dependency chain:
+1. Typing sequence API (receives raw events)
+2. Data cleaning (classifies chord vs chentry)
+3. FSRS scheduling (needs cleaned chord attempts)
+4. Challenge Point (needs real-time latency data)
+
+**Key decisions:**
+- All learning system terms removed from `frontend/CONTEXT.md` and `backend/CONTEXT.md`.
+- Terms archived in `docs/agents/deferred-terms-archive.md` with dependencies tracked.
+- "Lesson queue" concept questioned — may be replaced by granular FSRS rather than explicit lessons.
+- "Mastery score" deferred — depends on FSRS + stats aggregation.
+- Frontend does not need FSRS/Challenge Point in glossary until frontend participates in the system.
+- "Wrapper" concept (from TEST_ARCHITECTURE.md) clarified: a layer around sacred engine that listens for events and aggregates stats. Currently does not exist.
+
+**Updated in:** `frontend/CONTEXT.md` (7 terms removed), `backend/CONTEXT.md` (25+ terms removed), `docs/agents/deferred-terms-archive.md` (created)
 
 ---
 
-### F. Event Interface — Should the Typer class emit events now?
+### F. Event Interface — Sequence-level emission designed; implementation deferred
 
 | Source | Claim |
 |--------|-------|
 | TEST_ARCHITECTURE.md | Typer should emit `charTyped`, `charDeleted`, `wordCompleted`, `bufferLow`, `sessionStart`, `sessionPause`, `sessionResume`, `sessionComplete` |
 | Actual repo | `Typer` class has zero event emission |
 
-**Question:** Is adding an event interface to `Typer` the next priority, or should we keep it minimal until stats tracking is needed?
+**Resolution:** Granular per-character events (`charTyped`, `charDeleted`, `wordCompleted`) are NOT needed for the sequence API and would compromise timing accuracy. Instead, a `SequenceBuilder` module will record per-edit timing directly from `beforeinput` handling and emit sequence-level events only.
+
+**Key decisions:**
+- `Typer` will NOT emit granular per-character events.
+- `Typer` WILL emit `sequenceComplete` (full sequence data + timing delta) and `bufferLow` events.
+- A separate `SequenceBuilder` module handles sequence state, timing, and event emission.
+- Timing accuracy preserved by avoiding event dispatch overhead for granular edits.
+- Sequence total time vs aggregate edit time delta included for diagnostics.
+- Implementation deferred until CI/CD + test harnesses.
+- Frontend invariant updated: "It will emit sequence-level events via a separate sequence builder module."
+- "Wrapper" terminology abandoned — was never a specific architectural component.
+
+**Updated in:** `frontend/CONTEXT.md` (invariant corrected, new sequence builder terms), `docs/adr/0006-event-interface-design.md` (created)
 
 ---
 
-### G. Datastar Version
+### G. Datastar Version — Resolved (numbering scheme difference; crate kept as planned)
 
 | Source | Claim |
 |--------|-------|
 | `backend/templates/index.html` | `datastar.js` from CDN `@v1.0.0-RC.8` |
 | `backend/Cargo.toml` | `datastar = { version = "0.3", features = ["axum"] }` |
 
-**Question:** Are these versions compatible? The Cargo crate is 0.3 but the CDN is RC.8. Is the backend actually using the `datastar` crate for anything (SSE, signals), or is it just serving static HTML with CDN Datastar?
+**Resolution:** Versions are compatible — different numbering schemes (CDN = Datastar core version, Cargo = SDK crate version). Both kept, no downgrade. Check for latest crate version and upgrade if available.
+
+**Key decisions:**
+- SSE will be used for raw data streaming (LLM-generated text), not just DOM updates.
+- `data-ignore-morph` is a valid Datastar directive protecting sacred engine DOM. Should be verified against v1.0 docs when possible.
+- `datastar` crate stays in `Cargo.toml` as planned dependency. Backend SSE usage deferred until LLM text generation is implemented.
+- Backend currently serves static HTML with CDN Datastar only — no SSE endpoints yet.
+
+**Updated in:** `frontend/CONTEXT.md` (Datastar shell + data-ignore-morph terms), `backend/CONTEXT.md` (Datastar SSE term), `docs/adr/0007-datastar-version-mismatch.md` (created)
 
 ---
 
-### H. `data-ignore-morph` on `#typer-display`
+### H. `data-ignore-morph` on `#typer-display` — Verified in Datastar docs
 
 | Source | Claim |
 |--------|-------|
 | `backend/templates/index.html` | `<div id="typer-display" data-ignore-morph>` |
 | TEST_ARCHITECTURE.md | "Datastar never touches `#typer-display`" |
 
-**Question:** Is `data-ignore-morph` a Datastar directive that prevents morphing, or is it a custom attribute? If Datastar morphs the DOM on SSE updates, this prevents it from wiping the sacred engine's DOM.
+**Resolution:** `data-ignore-morph` is a valid Datastar directive. Per the Datastar v1.0.1 docs: "Tells the PatchElements watcher to skip processing an element and its children when morphing elements." This enforces sacred engine isolation — Datastar never touches the typer's DOM.
+
+**Key decisions:**
+- Directive verified at https://data-star.dev/reference/attributes#data-ignore-morph
+- Frontend CONTEXT.md updated with precise definition from docs.
+
+**Updated in:** `frontend/CONTEXT.md` (data-ignore-morph term refined)
 
 ---
 
-### I. Multi-context layout — Where do context boundaries actually fall?
+### I. Multi-context layout — Resolved; shared/ and deferred/ contexts created
 
 | Decision | Rationale |
 |----------|-----------|
 | I put `frontend/CONTEXT.md` and `backend/CONTEXT.md` | Because the frontend is fairly settled (sacred engine + Datastar shell) while backend is nearly empty and will grow significantly |
 
-**Question:** Is this the right split? Or should there also be a `shared/` context for FSRS/models that both frontend (via WASM) and backend use? The PLAN.md mentions a `shared/` Rust crate.
+**Resolution:** Four-context layout established:
+- `frontend/CONTEXT.md` — browser-only concerns (sacred engine, Datastar shell, WebSerial)
+- `backend/CONTEXT.md` — server-only concerns (Axum, auth, typing sequence API, data cleaning, LLM proxy)
+- `shared/CONTEXT.md` — cross-cutting domain terms (Chord, Typing sequence, data contracts)
+- `deferred/CONTEXT.md` — all deferred features (FSRS, Challenge Point, mastery, sync, premium AI, etc.)
+
+**Key decisions:**
+- Duplicated terms (Chord, Chord input, Chord output, Chentry, Typing sequence, etc.) moved to `shared/CONTEXT.md`
+- `deferred-terms-archive.md` replaced by `deferred/CONTEXT.md` as curated glossary
+- Deferred terms in frontend/backend now reference `deferred/CONTEXT.md` instead of inline "Deferred" markers
+- `CONTEXT-MAP.md` updated with all four contexts and reading guide
+
+**Updated in:** `shared/CONTEXT.md` (created), `deferred/CONTEXT.md` (created), `frontend/CONTEXT.md` (deduplicated), `backend/CONTEXT.md` (deduplicated), `CONTEXT-MAP.md` (updated), `docs/agents/deferred-terms-archive.md` (superseded)
 
 ---
 
-### J. Agents.md vs CLAUDE.md
+### J. Agents.md vs CLAUDE.md — Renamed to AGENTS.md
 
 | Observation |
 |-------------|
-| The repo has `Agents.md` (not `AGENTS.md` or `CLAUDE.md`). The skill instructions say "If `CLAUDE.md` exists, edit it. Else if `AGENTS.md` exists, edit it." I edited `Agents.md` because it was the only file present. |
+| The repo had `Agents.md` (not `AGENTS.md` or `CLAUDE.md`). The skill instructions say "If `CLAUDE.md` exists, edit it. Else if `AGENTS.md` exists, edit it." I edited `Agents.md` because it was the only file present. |
 
-**Question:** Should we rename `Agents.md` to `CLAUDE.md` for consistency with the skill conventions, or keep it as-is?
+**Resolution:** Renamed `Agents.md` → `AGENTS.md` to match Hermes Agent conventions. The file already contains the agent skill block (added in a previous session).
+
+**Key decisions:**
+- `AGENTS.md` is the correct name for Hermes Agent compatibility.
+- Not `CLAUDE.md` — that convention is for Claude Code / Claude-specific agents.
+- File content unchanged; only the filename was updated.
+
+**Updated in:** `AGENTS.md` (renamed from `Agents.md`)
 
 ---
 
