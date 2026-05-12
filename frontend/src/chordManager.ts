@@ -24,7 +24,8 @@ export function* splitChords(s: string): Generator<{ chordy: boolean; token: str
 
   if (escaped.length > 0) {
     let isChord = false;
-    const chordReg = new RegExp(`\b(${escaped.join('|')})\b`, 'i');
+    const pattern = escaped.join('|');
+    const chordReg = new RegExp(String.raw`\b(${pattern})\b`, 'i');
     for (const chunk of s.split(chordReg)) {
       if (chunk.length !== 0) {
         yield { chordy: isChord, token: chunk };

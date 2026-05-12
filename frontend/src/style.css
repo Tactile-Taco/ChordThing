@@ -31,14 +31,17 @@ select {
   --color-error-background: rgba(239, 68, 68, 0.15);
   --typing-line-height: 1.625;
 
+
   --font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
   text-rendering: optimizeLegibility;
   --typing-font-size: 1.5rem;
 
+  /* background-color: #5D7A6F; */
   background-color: var(--background);
 
   --char-unit: 1.05em;
   -webkit-font-smoothing: antialiased;
+  /* -moz-osx-font-smoothing: grayscale; */
 }
 
 .app-grid {
@@ -55,9 +58,17 @@ select {
 }
 
 #text-gen {
+  /* display: grid; */
   grid-column: core;
   grid-row: above;
+  /* width: 100%; */
 }
+
+/* footer { */
+/* position: fixed; */
+/* bottom: 0; */
+/* justify-self: center; */
+/* } */
 
 .app-grid > footer {
   display: grid;
@@ -69,25 +80,27 @@ select {
 #typer {
   display: grid;
   grid-row: typer;
+  /* outline: solid; */
   outline: none;
   position: relative;
   grid-template: inherit;
   grid-column: full-width;
-}
 
-#typer dialog[open] {
-  display: grid;
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  grid-column: full-width;
-  z-index: 1;
-  background-color: rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(5px) contrast(70%) drop-shadow(15px 0px gray);
-}
+  dialog[open] {
+    display: grid;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    grid-column: full-width;
+    z-index: 1;
+    background-color: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(5px) contrast(70%) drop-shadow(15px 0px gray);
 
-#typer dialog[open] * {
-  place-self: center;
+    * {
+      place-self: center;
+    }
+  }
+
 }
 
 #typer-display {
@@ -109,29 +122,27 @@ char {
   padding: 0px;
   transition: all 0.1s ease;
   opacity: 0.6;
+  &.typo {
+    color: var(--color-text-error);
+    background-color: var(--color-error-background);
+    opacity: 0.3;
+  }
+  &.correct {
+    opacity: 0.9;
+    &.chorded {
+      color: var(--color-text-chorded);
+    }
+  }
 }
 
-char.typo {
-  color: var(--color-text-error);
-  background-color: var(--color-error-background);
-  opacity: 0.3;
-}
-
-char.correct {
-  opacity: 0.9;
-}
-
-char.correct.chorded {
-  color: var(--color-text-chorded);
-}
-
-ruby rt {
+ruby rt{
   font-size: 0.6em;
   color: var(--color-text-chorded);
   letter-spacing: 0.05em;
 }
 
-kbd > key {
+
+kbd>key {
   border-radius: 3px;
   padding: 0px 1px;
   border: 1px solid black;

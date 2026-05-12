@@ -2,11 +2,16 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ChordMan</title>
-  <link rel="stylesheet" href="/src/style.css" />
   <script type="module" src="https://cdn.jsdelivr.net/gh/starfederation/datastar@v1.0.0-RC.8/bundles/datastar.js"></script>
-  <script type="module" src="/src/main.ts"></script>
+  {% if dev_mode %}
+    <script type="module" src="http://localhost:5173/src/main.ts"></script>
+  {% else %}
+    <script type="module" src="/assets/main.js"></script>
+    <link rel="stylesheet" href="/assets/style.css" />
+  {% endif %}
 </head>
 <body>
   <main class="app-grid" data-signals:test-gen-mode="'random'">
@@ -32,11 +37,22 @@
     </fieldset>
     <div id="typer" contenteditable="plaintext-only">
       <dialog id="test-pause-dialog" open>focus/click here to begin typing</dialog>
-      <div id="typer-display"></div>
+      <div id="typer-display" data-ignore-morph></div>
     </div>
     <footer>
       <button id="chara-connect">connect</button>
     </footer>
   </main>
+
+  <dialog id="chara-connect-dialog">
+    <p>Connect your CharaChorder device via USB serial.</p>
+    <button id="chara-connect-confirm">Connect</button>
+    <button id="chara-connect-cancel">Cancel</button>
+  </dialog>
+
+  <dialog id="test-start-dialog">
+    <p>Device connected! Ready to start typing test.</p>
+    <button id="test-start-confirm">Start</button>
+  </dialog>
 </body>
 </html>

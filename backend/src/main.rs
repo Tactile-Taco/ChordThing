@@ -1,21 +1,16 @@
+use askama::Template;
 use axum::{
     extract::State,
-    response::{IntoResponse, Sse},
+    http::StatusCode,
+    response::IntoResponse,
     routing::{get, post},
     Router,
-};
-use datastar::{
-    patch_elements::PatchElements,
-    patch_signals::PatchSignals,
-    axum::ReadSignals,
 };
 use serde::Deserialize;
 use std::sync::Arc;
 use tokio::sync::Mutex;
+use tower_http::services::ServeDir;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
-use askama::Template;
-use futures::stream::{self, Stream};
-use std::convert::Infallible;
 
 #[derive(Debug, Default)]
 struct AppState {
@@ -32,7 +27,9 @@ struct TestGenSignals {
 
 #[derive(Template)]
 #[template(path = "index.html")]
-struct IndexTemplate;
+struct IndexTemplate {
+    dev_mode: bool,
+}
 
 #[tokio::main]
 async fn main() {
@@ -50,7 +47,7 @@ async fn main() {
         .route("/", get(index_handler))
         .route("/api/set-test-gen", post(set_test_gen_handler))
         .route("/api/typer-init", post(typer_init_handler))
-        .fallback_service(tower_http::services::ServeDir::new("frontend/dist"))
+        .fallback_service(ServeDir::new("../frontend/dist"))
         .with_state(state);
 
     let listener = tokio::net::TcpListener::bind("127.0.0.1:8080").await.unwrap();
@@ -59,35 +56,24 @@ async fn main() {
 }
 
 async fn index_handler() -> impl IntoResponse {
-    let template = IndexTemplate;
+    let dev_mode = std::env::var("DEV").is_ok();
+    let template = IndexTemplate { dev_mode };
     match template.render() {
         Ok(html) => axum::response::Html(html).into_response(),
-        Err(err) => {
-            tracing::error!("Template render error: {}", err);
-            (
-                axum::http::StatusCode::INTERNAL_SERVER_ERROR,
-                format!("Template error: {}", err),
-            )
-                .into_response()
-        }
+        Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
     }
 }
 
 async fn set_test_gen_handler(
     State(state): State<SharedState>,
-    ReadSignals(signals): ReadSignals<TestGenSignals>,
-) -> Sse<impl Stream<Item = Result<axum::response::sse::Event, Infallible>>> {
+) -> impl IntoResponse {
     let mut s = state.lock().await;
-    s.test_gen_mode = signals.test_gen_mode.clone();
+    s.test_gen_mode = "random".to_string();
     tracing::debug!("test_gen_mode set to {}", s.test_gen_mode);
-    let signals_json = format!(r#"{{"testGenMode": "{}"}}"#, s.test_gen_mode);
-    let patch = PatchSignals::new(signals_json);
-    let event = patch.write_as_axum_sse_event();
-    Sse::new(stream::iter(vec![Ok(event)]))
+    StatusCode::OK
 }
 
-async fn typer_init_handler() -> Sse<impl Stream<Item = Result<axum::response::sse::Event, Infallible>>> {
-    let patch = PatchElements::new(r#"<div id="typer-display"></div>"#);
-    let event = patch.write_as_axum_sse_event();
-    Sse::new(stream::iter(vec![Ok(event)]))
+async fn typer_init_handler() -> impl IntoResponse {
+    tracing::debug!("typer init");
+    StatusCode::OK
 }
