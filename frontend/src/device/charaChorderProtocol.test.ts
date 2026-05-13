@@ -54,7 +54,7 @@ describe('CharaChorderProtocol', () => {
   describe('getChord', () => {
     it('should parse chord actions and phrase', async () => {
       const transport = new MockSerialTransport([
-        'CML C1 0 000CC200000000000000000000000000 68656C6C6F',
+        'CML C1 0 000CC200000000000000000000000000 68656C6C6F 0',
       ]);
       const protocol = new CharaChorderProtocol(transport);
       await protocol.connect();

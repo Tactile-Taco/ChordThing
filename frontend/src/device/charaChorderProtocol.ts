@@ -98,8 +98,12 @@ export class CharaChorderProtocol {
 
   async getChord(index: number): Promise<ChordData> {
     const response = await this.sendCommand(`CML C1 ${index}`);
-    if (response.length < 5) {
+    if (response.length < 6) {
       throw new Error('Unexpected response format for chord');
+    }
+    const status = response[5];
+    if (status !== '0') {
+      throw new Error(`Failed to get chord at index ${index}. Status: ${status}`);
     }
     const actions = this.parseChordActions(response[3]);
     const phrase = this.parsePhraseHex(response[4]);
