@@ -20,8 +20,10 @@ export async function connectDevice(): Promise<void> {
     saveChords(chords);
     console.log('Chords:', chords);
 
-    document.getElementById('chara-connect-dialog')?.close();
-    document.getElementById('test-start-dialog')?.show();
+    const connectDialog = document.getElementById('chara-connect-dialog') as HTMLDialogElement | null;
+    const startDialog = document.getElementById('test-start-dialog') as HTMLDialogElement | null;
+    connectDialog?.close();
+    startDialog?.show();
   } catch (error) {
     console.error('Error:', error);
   } finally {

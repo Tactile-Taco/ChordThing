@@ -7,32 +7,6 @@
     <title>ChordMan</title>
   </head>
   <body>
-    <main class="app-grid">
-      <fieldset id="text-gen">
-        <legend>Choose test text generation method</legend>
-        <ul style="list-style-type:none">
-          <li>
-            <input type="radio" id="random-words" name="test-gen" value="random" checked>
-            <label for="random-words">Random words</label>
-          </li>
-          <li>
-            <input type="radio" id="local-llm" name="test-gen" value="local" disabled>
-            <label for="local-llm">Local LLM</label>
-          </li>
-          <li>
-            <input type="radio" id="remote-llm" name="test-gen" value="remote">
-            <label for="remote-llm">Remote LLM</label>
-          </li>
-        </ul>
-      </fieldset>
-      <div id="typer" contenteditable="plaintext-only">
-        <dialog id="test-pause-dialog" open>focus/click here to begin typing</dialog>
-        <div id="typer-display"></div>
-      </div>
-      <footer>
-        <button id="chara-connect">connect</button>
-      </footer>
-    </main>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
