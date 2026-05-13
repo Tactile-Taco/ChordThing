@@ -1,9 +1,19 @@
+interface SerialPortInfo {
+  usbVendorId?: number;
+  usbProductId?: number;
+}
+
+interface SerialPortFilter {
+  usbVendorId?: number;
+  usbProductId?: number;
+}
 
 interface SerialPort extends EventTarget {
   open(options: SerialOptions): Promise<void>;
   close(): Promise<void>;
   readonly readable: ReadableStream<Uint8Array> | null;
   readonly writable: WritableStream<Uint8Array> | null;
+  getInfo(): SerialPortInfo;
 }
 
 interface SerialOptions {
@@ -17,7 +27,7 @@ interface SerialOptions {
 
 interface Navigator {
   serial: {
-    requestPort(): Promise<SerialPort>;
+    requestPort(options?: { filters?: SerialPortFilter[] }): Promise<SerialPort>;
     getPorts(): Promise<SerialPort[]>;
   };
 }

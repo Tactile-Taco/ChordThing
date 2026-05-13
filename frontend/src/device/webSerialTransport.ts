@@ -1,12 +1,28 @@
 import type { SerialTransport, SerialPortInfo } from './serialTransport';
 
+// CharaChorder device USB filters from DeviceManager
+// https://github.com/CharaChorder/DeviceManager
+export const CHARACHORDER_PORT_FILTERS: SerialPortFilter[] = [
+  { usbProductId: 0x800f, usbVendorId: 0x239a }, // ONE M0
+  { usbProductId: 0x8252, usbVendorId: 0x303a }, // TWO S3 (pre-production)
+  { usbProductId: 0x8253, usbVendorId: 0x303a }, // TWO S3
+  { usbProductId: 0x812e, usbVendorId: 0x303a }, // LITE S2
+  { usbProductId: 0x801c, usbVendorId: 0x239a }, // LITE M0
+  { usbProductId: 0x818b, usbVendorId: 0x303a }, // X
+  { usbProductId: 0x1001, usbVendorId: 0x303a }, // M4G S3 (pre-production)
+  { usbProductId: 0x829a, usbVendorId: 0x303a }, // M4G S3
+  { usbProductId: 0x82f2, usbVendorId: 0x303a }, // CCB S2
+];
+
 export class WebSerialTransport implements SerialTransport {
   private port: SerialPort | null = null;
   private _readable: ReadableStream<Uint8Array> | null = null;
   private _writable: WritableStream<Uint8Array> | null = null;
 
   async open(options: { baudRate: number }): Promise<void> {
-    this.port = await navigator.serial.requestPort();
+    this.port = await navigator.serial.requestPort({
+      filters: CHARACHORDER_PORT_FILTERS,
+    });
     await this.port.open(options);
     this._readable = this.port.readable;
     this._writable = this.port.writable;
