@@ -97,7 +97,7 @@ jobs:
         run: |
           cd frontend
           bun install
-          bunx vite-plus build
+          bunx vite build
 
       - name: Build backend
         run: |
