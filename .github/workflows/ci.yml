@@ -139,4 +139,5 @@ jobs:
         run: |
           cd e2e
           bun install
+          bunx playwright install chromium
           bunx playwright test

@@ -18,7 +18,9 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'cd ../backend && cargo run --release',
+    command: process.env.CI 
+      ? 'cd ../backend && ./target/release/chordthing-backend'
+      : 'cd ../backend && cargo run --release',
     url: 'http://localhost:8080',
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000,
