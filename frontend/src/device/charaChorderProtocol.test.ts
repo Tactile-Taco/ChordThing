@@ -60,7 +60,7 @@ describe('CharaChorderProtocol', () => {
       await protocol.connect();
 
       const chord = await protocol.getChord(0);
-      expect(chord.actions).toEqual([51, 32]);
+      expect(chord.actions).toEqual([32, 51]);
       expect(chord.phrase).toBe('hello');
     });
   });

@@ -112,7 +112,7 @@ export class CharaChorderProtocol {
     for (let i = 0; i < 12; i++) {
       const action = Number((bigInt >> BigInt(10 * i)) & BigInt(0x3ff));
       if (action !== 0) {
-        actions.unshift(action);
+        actions.push(action);
       }
     }
     return actions;
