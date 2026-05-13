@@ -19,7 +19,7 @@ async fn index_returns_html() {
         .await
         .unwrap();
     let html = String::from_utf8(body.to_vec()).unwrap();
-    assert!(html.contains("ChordMan") || html.contains("ChordThing"));
+    assert!(html.contains("ChordMan"));
 }
 
 #[tokio::test]
@@ -72,7 +72,6 @@ async fn static_files_fallback() {
         .await
         .unwrap();
 
-    // Should return 404 since frontend/dist may not have the file in test
-    // But the route exists and handles it
-    assert!(response.status() == StatusCode::OK || response.status() == StatusCode::NOT_FOUND);
+    // In test environment, frontend/dist may not exist, so we expect 404
+    assert_eq!(response.status(), StatusCode::NOT_FOUND);
 }

@@ -113,8 +113,10 @@ export class CharaChorderProtocol {
   private parseChordActions(hexString: string): number[] {
     const bigInt = BigInt(`0x${hexString}`);
     const actions: number[] = [];
+    // Key 1 is at highest bits (bits 118-127), Key 12 at lowest (bits 8-17)
+    // Read from high to low to maintain descending order
     for (let i = 0; i < 12; i++) {
-      const action = Number((bigInt >> BigInt(10 * i)) & BigInt(0x3ff));
+      const action = Number((bigInt >> BigInt(10 * (11 - i))) & BigInt(0x3ff));
       if (action !== 0) {
         actions.push(action);
       }

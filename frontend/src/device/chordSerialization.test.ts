@@ -11,24 +11,50 @@ describe('chordSerialization', () => {
   describe('parseChordActions', () => {
     it('should parse known hex string', () => {
       const result = parseChordActions('000CC200000000000000000000000000');
-      expect(result).toEqual([32, 51]);
+      expect(result).toEqual([51, 32]);
     });
 
     it('should return empty array for all zeros', () => {
       const result = parseChordActions('00000000000000000000000000000000');
       expect(result).toEqual([]);
     });
+
+    it('should parse doc example chord (carpe diem)', () => {
+      // From CCOS Serial API docs: CML C1 522 001946418C0000000000000000000000 6361727065206469656D 0
+      // This chord encodes 'c' (99), 'd' (100), 'e' (101) in descending order
+      const result = parseChordActions('001946418C0000000000000000000000');
+      expect(result).toEqual([101, 100, 99]);
+    });
+
+    it('should maintain descending order', () => {
+      // Keys should be returned in descending order (greatest to least)
+      const result = parseChordActions('000CC200000000000000000000000000');
+      expect(result[0]).toBeGreaterThan(result[1]);
+    });
   });
 
   describe('stringifyChordActions', () => {
     it('should stringify known actions', () => {
-      const result = stringifyChordActions([32, 51]);
-      expect(result).toBe('0000000000000000000000000000CC20');
+      const result = stringifyChordActions([51, 32]);
+      expect(result).toBe('000CC200000000000000000000000000');
     });
 
     it('should return 32 zeros for empty array', () => {
       const result = stringifyChordActions([]);
       expect(result).toBe('00000000000000000000000000000000');
+    });
+
+    it('should stringify doc example chord (carpe diem)', () => {
+      // From CCOS Serial API docs
+      const result = stringifyChordActions([101, 100, 99]);
+      expect(result).toBe('001946418C0000000000000000000000');
+    });
+
+    it('should truncate actions beyond 12', () => {
+      const actions = Array.from({ length: 15 }, (_, i) => i + 1);
+      const result = stringifyChordActions(actions);
+      const parsed = parseChordActions(result);
+      expect(parsed).toHaveLength(12);
     });
   });
 
