@@ -113,4 +113,5 @@ jobs:
       - name: Run Playwright tests
         run: |
           cd e2e
-          npx playwright test
+          bun install
+          bunx playwright test
