@@ -1,7 +1,6 @@
 export interface Chord {
   chord: string;
   phrase: string;
-  phrase_regex_escaped: string;
 }
 
 export function getChords(): Chord[] {
@@ -20,10 +19,10 @@ export function saveChords(chords: Chord[]): void {
 
 export function* splitChords(s: string): Generator<{ chordy: boolean; token: string }> {
   const chords = getChords();
-  const escaped = chords.map((chord) => chord.phrase_regex_escaped);
 
-  if (escaped.length > 0) {
+  if (chords.length > 0) {
     let isChord = false;
+    const escaped = chords.map((chord) => RegExp.escape(chord.phrase));
     const chordReg = new RegExp('\\b(' + escaped.join('|') + ')\\b', 'i');
     for (const chunk of s.split(chordReg)) {
       if (chunk.length !== 0) {
