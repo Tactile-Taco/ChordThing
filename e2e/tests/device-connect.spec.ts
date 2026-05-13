@@ -58,11 +58,12 @@ test.describe('Device Connect', () => {
     await page.goto('/');
   });
 
-  test('connect button shows start dialog after successful connection', async ({ page }) => {
+  test('connect button shows connected state after successful connection', async ({ page }) => {
     await page.locator('#chara-connect').click();
 
     // Wait for the connection flow to complete
-    const startDialog = page.locator('#test-start-dialog');
-    await expect(startDialog).toHaveAttribute('open', '');
+    const connectButton = page.locator('#chara-connect');
+    await expect(connectButton).toHaveText('connected');
+    await expect(connectButton).toHaveAttribute('data-connected', 'true');
   });
 });

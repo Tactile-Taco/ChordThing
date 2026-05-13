@@ -21,11 +21,23 @@ export async function connectDevice(): Promise<void> {
     console.log('Chords:', chords);
 
     const connectDialog = document.getElementById('chara-connect-dialog') as HTMLDialogElement | null;
-    const startDialog = document.getElementById('test-start-dialog') as HTMLDialogElement | null;
     connectDialog?.close();
-    startDialog?.show();
+
+    // Update connect button to show connected state
+    const connectButton = document.getElementById('chara-connect');
+    if (connectButton) {
+      connectButton.textContent = 'connected';
+      connectButton.setAttribute('data-connected', 'true');
+    }
   } catch (error) {
     console.error('Error:', error);
+
+    // Update connect button to show error state
+    const connectButton = document.getElementById('chara-connect');
+    if (connectButton) {
+      connectButton.textContent = 'connect failed';
+      connectButton.setAttribute('data-connected', 'false');
+    }
   } finally {
     await device.disconnect();
     console.log('Disconnected from device');
