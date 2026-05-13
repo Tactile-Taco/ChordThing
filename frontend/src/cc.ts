@@ -1,10 +1,13 @@
+import type { SerialTransport } from './device/serialTransport';
+import { WebSerialTransport } from './device/webSerialTransport';
+
 export interface KeymapAction {
   id: string;
   display: string;
 }
 
 export class CharaChorderDevice {
-  private port: SerialPort | null = null;
+  private transport: SerialTransport | null = null;
   private reader: ReadableStreamDefaultReader<string> | null = null;
   private writer: WritableStreamDefaultWriter<string> | null = null;
   private readableStreamClosed: Promise<void> | null = null;
@@ -12,8 +15,9 @@ export class CharaChorderDevice {
   private debug = false;
   private KEYMAP_CODES: Map<number, KeymapAction>;
 
-  constructor() {
+  constructor(transport?: SerialTransport) {
     this.KEYMAP_CODES = this.buildKeymapCodes();
+    this.transport = transport ?? null;
   }
 
   private buildKeymapCodes(): Map<number, KeymapAction> {
@@ -452,15 +456,18 @@ export class CharaChorderDevice {
 
   async connect(): Promise<void> {
     try {
-      this.port = await navigator.serial.requestPort();
-      await this.port.open({ baudRate: 115200 });
+      if (!this.transport) {
+        // Default: use Web Serial API
+        this.transport = new WebSerialTransport();
+      }
+      await this.transport.open({ baudRate: 115200 });
 
       const decoder = new TextDecoderStream();
-      this.readableStreamClosed = this.port.readable!.pipeTo(decoder.writable as WritableStream<Uint8Array>);
+      this.readableStreamClosed = this.transport.readable.pipeTo(decoder.writable as WritableStream<Uint8Array>);
       this.reader = decoder.readable.getReader();
 
       const encoder = new TextEncoderStream();
-      this.writableStreamClosed = encoder.readable.pipeTo(this.port.writable!);
+      this.writableStreamClosed = encoder.readable.pipeTo(this.transport.writable);
       this.writer = encoder.writable.getWriter();
     } catch (error) {
       console.error('Error connecting to device:', error);
@@ -483,9 +490,9 @@ export class CharaChorderDevice {
       this.writableStreamClosed = null;
     }
 
-    if (this.port) {
-      await this.port.close();
-      this.port = null;
+    if (this.transport) {
+      await this.transport.close();
+      this.transport = null;
     }
   }
 
