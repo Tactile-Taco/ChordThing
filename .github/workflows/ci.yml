@@ -110,12 +110,6 @@ jobs:
           cd backend
           cargo build --release
 
-      - name: Start backend
-        run: |
-          cd backend
-          cargo run --release &
-          sleep 5
-
       - name: Run Playwright tests
         run: |
           cd e2e
