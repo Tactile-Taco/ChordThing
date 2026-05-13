@@ -46,6 +46,16 @@ describe('CharaChorderProtocol', () => {
 
       await expect(protocol.getOperatingSystem()).rejects.toThrow('Failed to get operating system');
     });
+
+    it('should throw on incomplete response', async () => {
+      const transport = new MockSerialTransport([
+        { expectWrite: 'VAR B1 91\r\n', respondWith: ['VAR B1 91'] },
+      ]);
+      const protocol = new CharaChorderProtocol(transport);
+      await protocol.connect();
+
+      await expect(protocol.getOperatingSystem()).rejects.toThrow('Unexpected response format');
+    });
   });
 
   describe('getChordCount', () => {
@@ -72,6 +82,26 @@ describe('CharaChorderProtocol', () => {
       const chord = await protocol.getChord(0);
       expect(chord.actions).toEqual([51, 32]);
       expect(chord.phrase).toBe('hello');
+    });
+
+    it('should throw on missing status field', async () => {
+      const transport = new MockSerialTransport([
+        { expectWrite: 'CML C1 0\r\n', respondWith: ['CML C1 0 000CC200000000000000000000000000 68656C6C6F'] },
+      ]);
+      const protocol = new CharaChorderProtocol(transport);
+      await protocol.connect();
+
+      await expect(protocol.getChord(0)).rejects.toThrow('Unexpected response format for chord');
+    });
+
+    it('should throw on non-zero status', async () => {
+      const transport = new MockSerialTransport([
+        { expectWrite: 'CML C1 0\r\n', respondWith: ['CML C1 0 000CC200000000000000000000000000 68656C6C6F 1'] },
+      ]);
+      const protocol = new CharaChorderProtocol(transport);
+      await protocol.connect();
+
+      await expect(protocol.getChord(0)).rejects.toThrow('Failed to get chord at index 0');
     });
   });
 
