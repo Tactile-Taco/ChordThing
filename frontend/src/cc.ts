@@ -149,6 +149,10 @@ export class CharaChorderDevice {
     return parseInt(response[2], 10);
   }
 
+  private escapeRegex(str: string): string {
+    return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  }
+
   async listChords(): Promise<{ chord: string; phrase: string; phrase_regex_escaped: string }[]> {
     try {
       const chordCount = await this.getChordCount();
@@ -165,7 +169,7 @@ export class CharaChorderDevice {
         chords.push({
           chord: actions.map((action) => this.getActionName(action)).join('+'),
           phrase,
-          phrase_regex_escaped: RegExp.escape(phrase),
+          phrase_regex_escaped: this.escapeRegex(phrase),
         });
       }
 
