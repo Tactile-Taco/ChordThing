@@ -149,10 +149,10 @@ export class CharaChorderDevice {
     return parseInt(response[2], 10);
   }
 
-  async listChords(): Promise<{ chord: string; phrase: string }[]> {
+  async listChords(): Promise<{ chord: string; phrase: string; phrase_regex_escaped: string }[]> {
     try {
       const chordCount = await this.getChordCount();
-      const chords: { chord: string; phrase: string }[] = [];
+      const chords: { chord: string; phrase: string; phrase_regex_escaped: string }[] = [];
 
       for (let i = 0; i < chordCount; i++) {
         const response = await this.sendCommand(`CML C1 ${i}`);
@@ -165,6 +165,7 @@ export class CharaChorderDevice {
         chords.push({
           chord: actions.map((action) => this.getActionName(action)).join('+'),
           phrase,
+          phrase_regex_escaped: RegExp.escape(phrase),
         });
       }
 
