@@ -15,7 +15,7 @@ function wrapToken(token: string, tokenElement: HTMLElement, frag: DocumentFragm
 
 export function wrapText(text: string): DocumentFragment {
   let nextIndex = Number(sessionStorage.getItem('next_char_index') ?? 0);
-  if (nextIndex) text = ' ' + text;
+  text = text.trim() + ' ';
 
   const chordStream = splitChords(text);
   const fragment = document.createDocumentFragment();

@@ -125,7 +125,10 @@ export class Typer {
     this.typeDisplay.append(this.getTextFragment());
     this.typerInited = true;
     const first = this.charAt(0);
-    if (first) first.id = 'cursor';
+    if (!first) {
+      throw new Error('Typer init failed: no element with data-index="0" found');
+    }
+    first.id = 'cursor';
   }
 
   unpause(e: Event): void {

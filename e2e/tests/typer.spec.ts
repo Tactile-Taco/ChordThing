@@ -16,6 +16,17 @@ test.describe('Typer', () => {
     await expect(typerDisplay).toBeAttached();
   });
 
+  test('cursor exists after typer initializes', async ({ page }) => {
+    const dialog = page.locator('#test-pause-dialog');
+    await expect(dialog).toBeVisible();
+    await dialog.click();
+    await expect(dialog).not.toBeVisible();
+
+    const cursor = page.locator('#cursor');
+    await expect(cursor).toBeAttached();
+    await expect(cursor).toHaveAttribute('data-index');
+  });
+
   test('typing advances the cursor', async ({ page }) => {
     // Close pause dialog
     await page.locator('#test-pause-dialog').click();

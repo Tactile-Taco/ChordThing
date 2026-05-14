@@ -3,9 +3,8 @@ import { Typer, setupGlobalKeyboardHandling } from './typer';
 import { setupConnectButton } from './device';
 
 // Initialize session storage
-if (!sessionStorage.getItem('next_char_index')) {
-  sessionStorage.setItem('next_char_index', '0');
-}
+sessionStorage.setItem('next_char_index', '0');
+sessionStorage.removeItem('test_gen_mode');
 
 // Initialize typer
 const typeDisplay = document.getElementById('typer-display');
