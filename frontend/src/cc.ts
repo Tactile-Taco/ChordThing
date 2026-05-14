@@ -23,8 +23,6 @@ export class CharaChorderDevice {
   private writer: WritableStreamDefaultWriter<string> | null = null;
   private readableStreamClosed: Promise<void> | null = null;
   private writableStreamClosed: Promise<void> | null = null;
-  private decoder: TextDecoderStream | null = null;
-  private encoder: TextEncoderStream | null = null;
   private debug = false;
 
   constructor(transport?: SerialTransport) {
@@ -45,17 +43,13 @@ export class CharaChorderDevice {
       }
       await this.transport.open({ baudRate: 115200 });
 
-      this.decoder = new TextDecoderStream();
-      this.readableStreamClosed = this.transport.readable.pipeTo(
-        this.decoder.writable as WritableStream<Uint8Array>,
-      );
-      this.reader = this.decoder.readable.getReader();
+      const decoder = new TextDecoderStream();
+      this.readableStreamClosed = this.transport.readable.pipeTo(decoder.writable as WritableStream<Uint8Array>);
+      this.reader = decoder.readable.getReader();
 
-      this.encoder = new TextEncoderStream();
-      this.writableStreamClosed = this.encoder.readable.pipeTo(
-        this.transport.writable,
-      );
-      this.writer = this.encoder.writable.getWriter();
+      const encoder = new TextEncoderStream();
+      this.writableStreamClosed = encoder.readable.pipeTo(this.transport.writable);
+      this.writer = encoder.writable.getWriter();
     } catch (error) {
       console.error('Error connecting to device:', error);
       throw error;
@@ -63,39 +57,18 @@ export class CharaChorderDevice {
   }
 
   async disconnect(): Promise<void> {
-    // Clean up reader / decoder pipe first to unlock port.readable
     if (this.reader) {
       await this.reader.cancel();
-      // Abort decoder.writable to break the pipeTo and release the lock
-      // on port.readable.  We keep the promise in readableStreamClosed
-      // but ignore its result.
       await this.readableStreamClosed?.catch(() => {});
       this.reader = null;
       this.readableStreamClosed = null;
     }
-    if (this.decoder) {
-      try {
-        this.decoder.writable.abort();
-      } catch {
-        // ignore — may already be aborted/closed
-      }
-      this.decoder = null;
-    }
 
-    // Clean up writer / encoder pipe to unlock port.writable
     if (this.writer) {
       await this.writer.close();
-      await this.writableStreamClosed?.catch(() => {});
+      await this.writableStreamClosed;
       this.writer = null;
       this.writableStreamClosed = null;
-    }
-    if (this.encoder) {
-      try {
-        this.encoder.readable.cancel();
-      } catch {
-        // ignore — may already be canceled/closed
-      }
-      this.encoder = null;
     }
 
     if (this.transport) {
