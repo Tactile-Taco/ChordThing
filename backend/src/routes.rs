@@ -14,7 +14,7 @@ pub struct IndexTemplate {
 }
 
 pub async fn index_handler() -> impl IntoResponse {
-    let dev_mode = std::env::var("DEV").is_ok();
+    let dev_mode = std::env::var("DEV").map(|v| v == "true" || v == "1").unwrap_or(false);
     let template = IndexTemplate { dev_mode };
     match template.render() {
         Ok(html) => axum::response::Html(html).into_response(),

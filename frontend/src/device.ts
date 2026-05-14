@@ -1,7 +1,7 @@
 import { CharaChorderDevice } from './cc';
 import { saveChords } from './chordManager';
 
-export async function connectDevice(): Promise<void> {
+export async function connectDevice(): Promise<CharaChorderDevice> {
   const device = new CharaChorderDevice();
 
   try {
@@ -29,6 +29,7 @@ export async function connectDevice(): Promise<void> {
       connectButton.textContent = 'connected';
       connectButton.setAttribute('data-connected', 'true');
     }
+    return device;
   } catch (error) {
     console.error('Error:', error);
 
@@ -41,6 +42,7 @@ export async function connectDevice(): Promise<void> {
 
     await device.disconnect();
     console.log('Disconnected from device');
+    throw error;
   }
 }
 

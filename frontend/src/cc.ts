@@ -7,6 +7,16 @@ export interface KeymapAction {
   display: string;
 }
 
+export class SerialTimeoutError extends Error {
+  constructor(
+    message: string,
+    public readonly command: string,
+  ) {
+    super(message);
+    this.name = 'SerialTimeoutError';
+  }
+}
+
 export class CharaChorderDevice {
   private transport: SerialTransport | null = null;
   private reader: ReadableStreamDefaultReader<string> | null = null;
@@ -67,32 +77,47 @@ export class CharaChorderDevice {
     }
   }
 
-  async sendCommand(command: string): Promise<string[]> {
+  async sendCommand(command: string, timeoutMs = 5000): Promise<string[]> {
     if (!this.writer) {
       throw new Error('Device not connected');
     }
     this.log('Sending command:', command);
     await this.writer.write(command + '\r\n');
-    return this.readResponse();
+    return this.readResponse(command, timeoutMs);
   }
 
-  async readResponse(): Promise<string[]> {
+  async readResponse(command: string, timeoutMs: number): Promise<string[]> {
     if (!this.reader) {
       throw new Error('Device not connected');
     }
-    let response = '';
-    while (true) {
-      const { value, done } = await this.reader.read();
-      if (done) {
-        break;
+
+    const timeout = new Promise<never>((_, reject) => {
+      const id = setTimeout(() => {
+        reject(new SerialTimeoutError(`Command "${command}" timed out after ${timeoutMs}ms`, command));
+      }, timeoutMs);
+      // Allow Node.js to exit if this is the only pending timer (test env)
+      if (typeof id === 'object' && 'unref' in id) {
+        (id as { unref(): void }).unref();
       }
-      response += value;
-      if (response.includes('\r\n')) {
-        break;
+    });
+
+    const read = async (): Promise<string[]> => {
+      let response = '';
+      while (true) {
+        const { value, done } = await this.reader!.read();
+        if (done) {
+          break;
+        }
+        response += value;
+        if (response.includes('\r\n')) {
+          break;
+        }
       }
-    }
-    this.log('Received response:', response.trim());
-    return response.trim().split(' ');
+      this.log('Received response:', response.trim());
+      return response.trim().split(' ');
+    };
+
+    return Promise.race([read(), timeout]);
   }
 
   async getOperatingSystem(): Promise<string> {
@@ -200,8 +225,18 @@ export class CharaChorderDevice {
   }
 
   private parsePhraseHex(hexString: string): string {
+    if (hexString.length % 2 !== 0) {
+      throw new Error(`Invalid hex phrase: odd length (${hexString.length})`);
+    }
     const pairs = hexString.match(/.{2}/g);
-    return pairs ? pairs.map((hex) => String.fromCharCode(parseInt(hex, 16))).join('') : '';
+    if (!pairs) return '';
+    return pairs.map((hex) => {
+      const code = parseInt(hex, 16);
+      if (Number.isNaN(code)) {
+        throw new Error(`Invalid hex phrase: non-hex pair "${hex}"`);
+      }
+      return String.fromCharCode(code);
+    }).join('');
   }
 
   private getActionName(actionId: number): string {

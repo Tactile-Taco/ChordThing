@@ -87,8 +87,12 @@ export class Typer {
     }
   }
 
+  getElement(): HTMLDivElement {
+    return this.typerElement;
+  }
+
   private getTextFragment(): DocumentFragment {
-    const text = 'This test is totally randomly generated text';
+    const text = 'Type this text as fast as you can';
     return wrapText(text);
   }
 
@@ -118,7 +122,7 @@ export function setupGlobalKeyboardHandling(typerInstance: Typer): void {
   window.addEventListener('keydown', (e) => {
     if (
       (e.code === 'Space' && e.target === document.body) ||
-      (typerInstance['typerElement'].contains(document.activeElement) && e.code.startsWith('Arrow'))
+      (typerInstance.getElement().contains(document.activeElement) && e.code.startsWith('Arrow'))
     ) {
       e.preventDefault();
     }

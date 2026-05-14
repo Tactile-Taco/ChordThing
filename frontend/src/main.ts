@@ -3,7 +3,9 @@ import { Typer, setupGlobalKeyboardHandling } from './typer';
 import { setupConnectButton } from './device';
 
 // Initialize session storage
-sessionStorage.setItem('next_char_index', '0');
+if (!sessionStorage.getItem('next_char_index')) {
+  sessionStorage.setItem('next_char_index', '0');
+}
 
 // Initialize typer
 const typeDisplay = document.getElementById('typer-display');
