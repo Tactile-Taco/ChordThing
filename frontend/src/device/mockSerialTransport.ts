@@ -62,6 +62,10 @@ export class MockSerialTransport implements SerialTransport {
             this.readableController?.enqueue(encoder.encode(response + '\r\n'));
           }
           this.currentInteraction++;
+        } else {
+          throw new Error(
+            `Unexpected write with no remaining interactions: "${text.trim()}"`
+          );
         }
       },
     });

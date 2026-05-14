@@ -157,8 +157,12 @@ export class CharaChorderDevice {
       for (let i = 0; i < chordCount; i++) {
         const response = await this.sendCommand(`CML C1 ${i}`);
         this.log(`Chord response for index ${i}:`, response);
-        if (response.length < 5) {
+        if (response.length < 6) {
           throw new Error('Unexpected response format for chord');
+        }
+        const status = response[5];
+        if (status !== '0') {
+          throw new Error(`Failed to get chord at index ${i}. Status: ${status}`);
         }
         const actions = this.parseChordActions(response[3]);
         const phrase = this.parsePhraseHex(response[4]);
