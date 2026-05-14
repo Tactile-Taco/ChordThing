@@ -73,7 +73,7 @@ The Training Data module will implement cleaning stages:
 
 ### 5. Endpoint design (proposed)
 
-```
+```http
 POST /api/typing-sequences
 Body: TypingSequence
 Response: 202 Accepted (async processing)

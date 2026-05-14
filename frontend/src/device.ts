@@ -38,7 +38,7 @@ export async function connectDevice(): Promise<void> {
       connectButton.textContent = 'connect failed';
       connectButton.setAttribute('data-connected', 'false');
     }
-  } finally {
+
     await device.disconnect();
     console.log('Disconnected from device');
   }

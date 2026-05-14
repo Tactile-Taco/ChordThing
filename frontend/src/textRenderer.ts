@@ -21,7 +21,6 @@ export function wrapText(text: string): DocumentFragment {
   const fragment = document.createDocumentFragment();
 
   for (const { chordy, token } of chordStream) {
-    console.log(token);
     if (chordy) {
       const tokenWrap = document.createElement('ruby');
       nextIndex = wrapToken(token, tokenWrap, fragment, nextIndex, chordy);

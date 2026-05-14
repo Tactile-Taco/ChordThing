@@ -108,7 +108,7 @@ export class Typer {
     if (!this.typerInited) {
       this.init();
     }
-    const target = e.target as HTMLDialogElement;
+    const target = e.currentTarget as HTMLDialogElement;
     target.close();
     this.typerElement.focus();
   }

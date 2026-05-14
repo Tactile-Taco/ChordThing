@@ -18,7 +18,10 @@ pub async fn index_handler() -> impl IntoResponse {
     let template = IndexTemplate { dev_mode };
     match template.render() {
         Ok(html) => axum::response::Html(html).into_response(),
-        Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
+        Err(e) => {
+            tracing::error!("Failed to render index template: {e}");
+            (StatusCode::INTERNAL_SERVER_ERROR, "Internal Server Error").into_response()
+        }
     }
 }
 

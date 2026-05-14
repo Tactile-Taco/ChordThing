@@ -42,16 +42,16 @@ All 10 grilling topics (A through J) have been resolved. The distillation is com
 
 | # | Topic | Status |
 |---|-------|--------|
-|| A | Tauri / Desktop scope | **Deferred** |
-|| B | Database — SQLite vs PostgreSQL | **Resolved** |
-|| C | Auth / Users — PKCE, subscriptions | **Resolved** |
-|| D | LLM Integration — text generation | **Resolved** |
-|| E | FSRS / Challenge Point — learning system | **Resolved** |
-|| F | Event Interface — Typer emits events? | **Resolved** |
-|| G | Datastar version mismatch | **Resolved** |
-|| H | `data-ignore-morph` attribute | **Resolved** |
-|| I | Context split — need shared/ context? | **Resolved** |
-|| J | Agents.md vs CLAUDE.md rename | **Resolved** |
+| A | Tauri / Desktop scope | **Deferred** |
+| B | Database — SQLite vs PostgreSQL | **Resolved** |
+| C | Auth / Users — PKCE, subscriptions | **Resolved** |
+| D | LLM Integration — text generation | **Resolved** |
+| E | FSRS / Challenge Point — learning system | **Resolved** |
+| F | Event Interface — Typer emits events? | **Resolved** |
+| G | Datastar version mismatch | **Resolved** |
+| H | `data-ignore-morph` attribute | **Resolved** |
+| I | Context split — need shared/ context? | **Resolved** |
+| J | Agents.md vs CLAUDE.md rename | **Resolved** |
 
 ## How to Continue
 
@@ -71,7 +71,7 @@ All 10 grilling topics (A through J) have been resolved. The distillation is com
 **How:** Use the Kimi export command (platform-specific — typically `/export` or via the UI).
 
 **Where:** Save exports to `/home/TacticalTaco/docs/kimi-exports/` with naming convention:
-```
+```text
 kimi-export-grill-{TOPIC_LETTER}-{YYYYMMDD-HHMMSS}.md
 ```
 Example: `kimi-export-grill-A-20260512-143000.md`

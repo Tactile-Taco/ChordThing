@@ -6,7 +6,10 @@ import { setupConnectButton } from './device';
 sessionStorage.setItem('next_char_index', '0');
 
 // Initialize typer
-const typeDisplay = document.getElementById('typer-display') as HTMLDivElement;
+const typeDisplay = document.getElementById('typer-display');
+if (!(typeDisplay instanceof HTMLDivElement)) {
+  throw new Error('#typer-display element not found or invalid');
+}
 const typer = new Typer(typeDisplay, sessionStorage);
 
 // Setup global keyboard handling
@@ -16,6 +19,9 @@ setupGlobalKeyboardHandling(typer);
 setupConnectButton('chara-connect');
 
 // Setup pause dialog
-const pauseDialog = document.getElementById('test-pause-dialog') as HTMLDialogElement;
+const pauseDialog = document.getElementById('test-pause-dialog');
+if (!(pauseDialog instanceof HTMLDialogElement)) {
+  throw new Error('#test-pause-dialog element not found or invalid');
+}
 pauseDialog.addEventListener('focus', (e) => typer.unpause(e));
 pauseDialog.addEventListener('click', (e) => typer.unpause(e));

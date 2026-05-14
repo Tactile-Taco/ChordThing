@@ -64,5 +64,4 @@
 
 ## Decisions
 
-See `frontend/docs/adr/` for context-specific architectural decisions.
 See `docs/adr/` for system-wide decisions.

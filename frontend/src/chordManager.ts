@@ -10,7 +10,8 @@ export function getChords(): Chord[] {
 
 export function getChordForPhrase(phrase: string): string {
   const chords = getChords();
-  return chords.find((chord) => chord.phrase === phrase)?.chord ?? '';
+  const normalized = phrase.toLowerCase();
+  return chords.find((chord) => chord.phrase.toLowerCase() === normalized)?.chord ?? '';
 }
 
 export function saveChords(chords: Chord[]): void {

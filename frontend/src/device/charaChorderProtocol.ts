@@ -47,14 +47,20 @@ export class CharaChorderProtocol {
   }
 
   async sendCommand(command: string): Promise<string[]> {
-    await this.writer!.write(command + '\r\n');
+    if (!this.writer) {
+      throw new Error('Device not connected');
+    }
+    await this.writer.write(command + '\r\n');
     return this.readResponse();
   }
 
   private async readResponse(): Promise<string[]> {
+    if (!this.reader) {
+      throw new Error('Device not connected');
+    }
     let response = '';
     while (true) {
-      const { value, done } = await this.reader!.read();
+      const { value, done } = await this.reader.read();
       if (done) {
         break;
       }

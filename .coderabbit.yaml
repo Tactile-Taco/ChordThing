@@ -2,7 +2,7 @@ reviews:
   review_status: true
   auto_review:
     enabled: true
-    branches:
+    base_branches:
       - main
       - datastar-axum-vite
       - feature/**

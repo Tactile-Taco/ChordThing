@@ -18,11 +18,11 @@ interface SerialPort extends EventTarget {
 
 interface SerialOptions {
   baudRate: number;
-  dataBits?: number;
-  stopBits?: number;
-  parity?: string;
+  dataBits?: 7 | 8;
+  stopBits?: 1 | 2;
+  parity?: 'none' | 'even' | 'odd';
   bufferSize?: number;
-  flowControl?: string;
+  flowControl?: 'none' | 'hardware';
 }
 
 interface Navigator {

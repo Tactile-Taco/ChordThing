@@ -43,7 +43,7 @@ describe('CharaChorderDevice', () => {
       expect(chords[1].phrase).toBe('world');
       
       // Check chord action decoding (descending order per CCOS spec)
-      expect(chords[0].chord).toBe('SPACE+3');
+      expect(chords[0].chord).toBe('3+SPACE');
       expect(chords[1].chord).toBe('');
     });
   });

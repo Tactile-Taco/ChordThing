@@ -7,6 +7,5 @@ pub struct AppState {
 
 #[derive(Debug, Deserialize)]
 pub struct TestGenSignals {
-    #[serde(default)]
     pub test_gen_mode: String,
 }

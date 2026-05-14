@@ -20,6 +20,12 @@ export class WebSerialTransport implements SerialTransport {
   private _writable: WritableStream<Uint8Array> | null = null;
 
   async open(options: { baudRate: number }): Promise<void> {
+    if (!('serial' in navigator)) {
+      throw new Error('Web Serial API is not available in this browser');
+    }
+    if (this.port) {
+      throw new Error('Transport already open');
+    }
     this.port = await navigator.serial.requestPort({
       filters: CHARACHORDER_PORT_FILTERS,
     });
