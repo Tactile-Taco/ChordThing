@@ -7,6 +7,9 @@ export class Typer {
   private sessionStorage: Storage;
   private typerElement: HTMLDivElement;
   private typerInited = false;
+  private untypedCount = 0;
+  private scrollPending = false;
+  private refillPending = false;
 
   constructor(typeDisplay: HTMLDivElement, sessionStorage: Storage) {
     this.typeDisplay = typeDisplay;
@@ -67,19 +70,33 @@ export class Typer {
           move.removeAttribute('class');
           move.textContent = move.dataset.val ?? '';
           move.dataset.typed = 'untyped';
+          this.untypedCount++;
         } else {
           const data = e.data ?? '';
           cursor.dataset.typed = data;
           cursor.textContent = cursor.dataset.typed;
           const isCorrect = cursor.dataset.val === cursor.dataset.typed;
           cursor.setAttribute('class', isCorrect ? 'correct' : 'typo');
+          this.untypedCount--;
 
-          while (this.typeDisplay.querySelectorAll('[data-typed="untyped"]').length < TEST_BUFFER_MIN_LENGTH) {
-            this.typeDisplay.append(this.getTextFragment());
+          if (!this.refillPending) {
+            this.refillPending = true;
+            requestAnimationFrame(() => {
+              this.refillPending = false;
+              while (this.untypedCount < TEST_BUFFER_MIN_LENGTH) {
+                this.typeDisplay.append(this.getTextFragment());
+              }
+            });
           }
         }
 
-        move.scrollIntoView({ block: 'start' });
+        if (!this.scrollPending) {
+          this.scrollPending = true;
+          requestAnimationFrame(() => {
+            this.scrollPending = false;
+            move.scrollIntoView({ block: 'start' });
+          });
+        }
         break;
       }
       default:
@@ -93,7 +110,10 @@ export class Typer {
 
   private getTextFragment(): DocumentFragment {
     const text = 'Type this text as fast as you can';
-    return wrapText(text);
+    const fragment = wrapText(text);
+    const untypedChars = fragment.querySelectorAll('[data-typed="untyped"]');
+    this.untypedCount += untypedChars.length;
+    return fragment;
   }
 
   init(): void {
