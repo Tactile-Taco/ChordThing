@@ -29,7 +29,20 @@ export class WebSerialTransport implements SerialTransport {
     this.port = await navigator.serial.requestPort({
       filters: CHARACHORDER_PORT_FILTERS,
     });
-    await this.port.open(options);
+    try {
+      await this.port.open(options);
+    } catch (error) {
+      // Port may already be open from a previous session
+      if (
+        error instanceof DOMException &&
+        error.name === 'InvalidStateError'
+      ) {
+        // Proceed — port is already open
+      } else {
+        this.port = null;
+        throw error;
+      }
+    }
     this._readable = this.port.readable;
     this._writable = this.port.writable;
   }
