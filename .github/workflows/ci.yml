@@ -42,6 +42,12 @@ jobs:
           cd frontend
           bun install
           bunx tsc --noEmit
+          bunx tsc --noEmit -p tsconfig.test.json
+
+      - name: npm audit
+        run: |
+          npm audit
+          cd e2e && npm audit
 
   build-backend:
     runs-on: ubuntu-latest

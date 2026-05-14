@@ -16,22 +16,22 @@
 <body>
   <main class="app-grid" data-signals:test-gen-mode="'random'">
     <fieldset id="text-gen">
-      <legend>Choose test text generation method</legend>
+      <legend style="color: var(--color-text-primary)">Choose test text generation method</legend>
       <ul style="list-style-type:none">
         <li>
           <input type="radio" id="random-words" name="test-gen" value="random"
                  data-on:change="$testGenMode = 'random'; @post('/api/set-test-gen')" checked>
-          <label for="random-words">Random words</label>
+          <label for="random-words" style="color: var(--color-text-primary)">Random words</label>
         </li>
         <li>
           <input type="radio" id="local-llm" name="test-gen" value="local"
                  data-on:change="$testGenMode = 'local'; @post('/api/set-test-gen')" disabled>
-          <label for="local-llm">Local LLM</label>
+          <label for="local-llm" style="color: var(--color-text-primary)">Local LLM</label>
         </li>
         <li>
           <input type="radio" id="remote-llm" name="test-gen" value="remote"
                  data-on:change="$testGenMode = 'remote'; @post('/api/set-test-gen')">
-          <label for="remote-llm">Remote LLM</label>
+          <label for="remote-llm" style="color: var(--color-text-primary)">Remote LLM</label>
         </li>
       </ul>
     </fieldset>

@@ -5,6 +5,11 @@ interface ExpectedInteraction {
   respondWith: string[];
 }
 
+export interface ChaosConfig {
+  chaosLevel: number;
+  seed?: number;
+}
+
 export class MockSerialTransport implements SerialTransport {
   private _readable: ReadableStream<Uint8Array> | null = null;
   private _writable: WritableStream<Uint8Array> | null = null;
@@ -16,8 +21,25 @@ export class MockSerialTransport implements SerialTransport {
   private currentInteraction = 0;
   private readableController: ReadableStreamDefaultController<Uint8Array> | null = null;
 
-  constructor(interactions: ExpectedInteraction[]) {
+  private readonly chaosLevel: number;
+  private rng: () => number;
+
+  constructor(interactions: ExpectedInteraction[], chaosConfig?: ChaosConfig) {
     this.interactions = interactions;
+    this.chaosLevel = Math.max(0, Math.min(1, chaosConfig?.chaosLevel ?? 0));
+    this.rng = this._createRng(chaosConfig?.seed);
+  }
+
+  private _createRng(seed?: number): () => number {
+    if (seed === undefined) {
+      return () => Math.random();
+    }
+    // Simple LCG for reproducible seeded randomness
+    let s = seed;
+    return () => {
+      s = (s * 16807 + 0) % 2147483647;
+      return (s - 1) / 2147483646;
+    };
   }
 
   async open(_options: { baudRate: number }): Promise<void> {
@@ -56,10 +78,10 @@ export class MockSerialTransport implements SerialTransport {
               `Unexpected write: "${text.trim()}". Expected: "${expected.trim()}"`
             );
           }
-          // Enqueue the responses immediately
+          // Enqueue the responses (with optional chaos)
           const encoder = new TextEncoder();
           for (const response of interaction.respondWith) {
-            this.readableController?.enqueue(encoder.encode(response + '\r\n'));
+            this._enqueueWithChaos(encoder.encode(response + '\r\n'));
           }
           this.currentInteraction++;
         } else {
@@ -69,6 +91,62 @@ export class MockSerialTransport implements SerialTransport {
         }
       },
     });
+  }
+
+  private _enqueueWithChaos(data: Uint8Array): void {
+    if (this.chaosLevel <= 0 || !this.readableController) {
+      this.readableController?.enqueue(data);
+      return;
+    }
+
+    // 1. Drop response
+    if (this.rng() < this.chaosLevel * 0.25) {
+      return;
+    }
+
+    let payload = new Uint8Array(data);
+
+    // 2. Corrupt response data
+    if (this.rng() < this.chaosLevel * 0.25) {
+      const numCorruptions = Math.max(1, Math.floor(this.rng() * 3));
+      for (let i = 0; i < numCorruptions; i++) {
+        const idx = Math.floor(this.rng() * payload.length);
+        payload[idx] = Math.floor(this.rng() * 256);
+      }
+    }
+
+    // 3. Close stream unexpectedly mid-response
+    if (this.rng() < this.chaosLevel * 0.25) {
+      // Enqueue partial data then close
+      const partialLength = Math.floor(this.rng() * payload.length);
+      if (partialLength > 0) {
+        this.readableController.enqueue(payload.slice(0, partialLength));
+      }
+      try {
+        this.readableController.close();
+      } catch {
+        // ignore if already closed
+      }
+      this._closed = true;
+      return;
+    }
+
+    // 4. Delay response
+    if (this.rng() < this.chaosLevel * 0.25) {
+      const delayMs = Math.floor(this.rng() * 500 * this.chaosLevel) + 50;
+      setTimeout(() => {
+        if (!this._closed && this.readableController) {
+          try {
+            this.readableController.enqueue(payload);
+          } catch {
+            // Controller may be closed
+          }
+        }
+      }, delayMs);
+      return;
+    }
+
+    this.readableController.enqueue(payload);
   }
 
   async close(): Promise<void> {

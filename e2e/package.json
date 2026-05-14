@@ -15,7 +15,9 @@
   "type": "module",
   "devDependencies": {
     "@playwright/test": "^1.60.0",
+    "@types/axe-core": "^2.0.2",
     "@types/node": "^25.7.0",
+    "axe-core": "^4.11.4",
     "typescript": "^6.0.3"
   }
 }
