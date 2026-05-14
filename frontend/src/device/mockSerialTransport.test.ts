@@ -206,12 +206,13 @@ describe('MockSerialTransport', () => {
 
       await writer.write(new TextEncoder().encode('VERSION\r\n'));
       const { value } = await reader.read();
+      expect(value).toBeDefined();
       const decoded = new TextDecoder().decode(value);
 
       // Should be corrupted, not equal to original
       expect(decoded).not.toBe('VERSION 2.2.0\r\n');
       // But should still have same byte length
-      expect(value.length).toBe(new TextEncoder().encode('VERSION 2.2.0\r\n').length);
+      expect(value!.length).toBe(new TextEncoder().encode('VERSION 2.2.0\r\n').length);
 
       await reader.cancel();
       await writer.close();
