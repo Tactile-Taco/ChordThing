@@ -1,0 +1,22 @@
+import { defineConfig } from 'vite';
+
+export default defineConfig({
+  server: {
+    port: 5173,
+    host: '127.0.0.1',
+    proxy: {
+      '/api': 'http://127.0.0.1:8080',
+    },
+  },
+  build: {
+    outDir: 'dist',
+    emptyOutDir: true,
+    rollupOptions: {
+      output: {
+        entryFileNames: 'assets/[name].js',
+        chunkFileNames: 'assets/[name].js',
+        assetFileNames: 'assets/[name][extname]',
+      },
+    },
+  },
+});
