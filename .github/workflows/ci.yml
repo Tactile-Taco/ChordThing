@@ -94,7 +94,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '24'
+          node-version: 'latest'
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@db6bcf6eb8d88a8aa03265b887ec7bd84d64cd68 # v2.1.1
@@ -109,7 +109,7 @@ jobs:
       - name: Run Vitest
         run: |
           cd frontend
-          bunx vitest run
+          NODE_OPTIONS='--localstorage-file=/tmp/vitest-ls' bunx vitest run
 
   test-e2e:
     runs-on: ubuntu-latest
