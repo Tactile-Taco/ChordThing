@@ -7,9 +7,15 @@ export class Typer {
   private sessionStorage: Storage;
   private typerElement: HTMLDivElement;
   private typerInited = false;
-  private untypedCount = 0;
+  #untypedCount = 0;
   private scrollPending = false;
   private refillPending = false;
+  private scrollTarget: HTMLElement | null = null;
+
+  /** @test-only Exposed for test verification only */
+  getUntypedCount(): number {
+    return this.#untypedCount;
+  }
 
   constructor(typeDisplay: HTMLDivElement, sessionStorage: Storage) {
     this.typeDisplay = typeDisplay;
@@ -70,20 +76,20 @@ export class Typer {
           move.removeAttribute('class');
           move.textContent = move.dataset.val ?? '';
           move.dataset.typed = 'untyped';
-          this.untypedCount++;
+          this.#untypedCount++;
         } else {
           const data = e.data ?? '';
           cursor.dataset.typed = data;
           cursor.textContent = cursor.dataset.typed;
           const isCorrect = cursor.dataset.val === cursor.dataset.typed;
           cursor.setAttribute('class', isCorrect ? 'correct' : 'typo');
-          this.untypedCount--;
+          this.#untypedCount--;
 
           if (!this.refillPending) {
             this.refillPending = true;
             requestAnimationFrame(() => {
               this.refillPending = false;
-              while (this.untypedCount < TEST_BUFFER_MIN_LENGTH) {
+              while (this.#untypedCount < TEST_BUFFER_MIN_LENGTH) {
                 this.typeDisplay.append(this.getTextFragment());
               }
             });
@@ -94,9 +100,11 @@ export class Typer {
           this.scrollPending = true;
           requestAnimationFrame(() => {
             this.scrollPending = false;
-            move.scrollIntoView({ block: 'start' });
+            this.scrollTarget?.scrollIntoView({ block: 'start' });
+            this.scrollTarget = null;
           });
         }
+        this.scrollTarget = move;
         break;
       }
       default:
@@ -112,7 +120,7 @@ export class Typer {
     const text = 'Type this text as fast as you can';
     const fragment = wrapText(text);
     const untypedChars = fragment.querySelectorAll('[data-typed="untyped"]');
-    this.untypedCount += untypedChars.length;
+    this.#untypedCount += untypedChars.length;
     return fragment;
   }
 

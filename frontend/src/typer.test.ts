@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { Typer, setupGlobalKeyboardHandling } from './typer';
+import './style.css';
 
 function createMinimalDom() {
   const typer = document.createElement('div');
@@ -85,8 +86,7 @@ describe('Typer', () => {
       }
 
       const domCount = typeDisplay.querySelectorAll('[data-typed="untyped"]').length;
-      const expectedUntyped = domCount;
-      expect(expectedUntyped).toBe(domCount);
+      expect(typerInstance.getUntypedCount()).toBe(domCount);
     });
   });
 
@@ -111,8 +111,7 @@ describe('Typer', () => {
 
   describe('scrollIntoView throttling', () => {
     it('should call scrollIntoView at most once per animation frame for multiple inputs', async () => {
-      const cursor = document.getElementById('cursor') as HTMLElement;
-      const scrollSpy = vi.spyOn(cursor, 'scrollIntoView');
+      const scrollSpy = vi.spyOn(Element.prototype, 'scrollIntoView');
 
       dispatchBeforeInput(typerElement, 'insertText', 'a');
       dispatchBeforeInput(typerElement, 'insertText', 'b');
@@ -179,6 +178,18 @@ describe('Typer', () => {
       const cursorAfter = document.getElementById('cursor') as HTMLElement;
       expect(cursorAfter.dataset.index).not.toBe(indexBefore);
       expect(Number(cursorAfter.dataset.index)).toBe(Number(indexBefore) + 1);
+    });
+
+    it('should not move cursor or change untypedCount when backspacing at boundary', () => {
+      const cursorBefore = document.getElementById('cursor') as HTMLElement;
+      const indexBefore = cursorBefore.dataset.index;
+      const untypedBefore = typerInstance.getUntypedCount();
+
+      dispatchBeforeInput(typerElement, 'deleteContentBackward');
+
+      const cursorAfter = document.getElementById('cursor') as HTMLElement;
+      expect(cursorAfter.dataset.index).toBe(indexBefore);
+      expect(typerInstance.getUntypedCount()).toBe(untypedBefore);
     });
 
     it('should retreat cursor on deleteContentBackward', () => {
