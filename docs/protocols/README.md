@@ -44,3 +44,31 @@ Each protocol links to its verification artifacts:
 - Test file(s)
 - Mutation score (Stryker / cargo-mutants)
 - Property-based test coverage
+
+### CI Evidence Chain Artifacts
+
+The weekly CI workflow (`.github/workflows/weekly.yml`) generates an **evidence chain** that explicitly links every protocol to its implementation, tests, and mutation-testing results.
+
+After the mutation-testing jobs finish, the `evidence-chain` job:
+1. Downloads the Stryker and cargo-mutants artifacts.
+2. Runs `scripts/generate-evidence-chain.py` to produce:
+   - `evidence-chain.md` — human-readable markdown summary
+   - `evidence-chain.json` — machine-readable JSON summary
+3. Uploads both files as the `evidence-chain` artifact.
+4. On pull requests, posts the markdown summary as a PR comment.
+
+### How to Read the Artifacts
+
+| Artifact | Contents | How to Access |
+|----------|----------|---------------|
+| `stryker-results` | Full HTML/JSON mutation report for the frontend | Download from the `frontend-stryker` job or the workflow summary page |
+| `cargo-mutants-results` | Full cargo-mutants output for the backend | Download from the `backend-mutants` job or the workflow summary page |
+| `evidence-chain` | Condensed summary linking protocols → source → tests → scores | Download from the `evidence-chain` job or read the PR comment |
+
+### Interpreting Scores
+
+- **Mutation score** = percentage of mutants killed by the test suite. Higher is better.
+- **survived** = mutants that passed all tests → weak or missing oracle.
+- **nocov** = mutants in uncovered code → missing tests.
+
+A low score on a protocol-backed module means the tests need strengthening before the implementation can be safely refactored or replaced (e.g., by an AI-generated alternative).

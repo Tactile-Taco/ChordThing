@@ -1,0 +1,123 @@
+{
+  "generated_at": "2026-05-15T19:18:08.087969+00:00",
+  "records": [
+    {
+      "protocol": "Typer",
+      "doc": "docs/protocols/typer.md",
+      "source": "frontend/src/typer.ts",
+      "tests": [
+        "frontend/src/typer.test.ts"
+      ],
+      "mutation": {
+        "total_mutants": 57,
+        "survived": 49,
+        "nocov": 8,
+        "score_percent": 14.0
+      }
+    },
+    {
+      "protocol": "Text Renderer",
+      "doc": "docs/protocols/text-renderer.md",
+      "source": "frontend/src/textRenderer.ts",
+      "tests": [
+        "frontend/src/textRenderer.test.ts"
+      ],
+      "mutation": {
+        "total_mutants": 14,
+        "survived": 7,
+        "nocov": 7,
+        "score_percent": 50.0
+      }
+    },
+    {
+      "protocol": "Chord Serialization",
+      "doc": "docs/protocols/chord-serialization.md",
+      "source": "frontend/src/device/chordSerialization.ts",
+      "tests": [
+        "frontend/src/device/chordSerialization.test.ts"
+      ],
+      "mutation": {
+        "total_mutants": 4,
+        "survived": 4,
+        "nocov": 0,
+        "score_percent": 0.0
+      }
+    },
+    {
+      "protocol": "Chord Manager",
+      "doc": "docs/protocols/chord-manager.md",
+      "source": "frontend/src/chordManager.ts",
+      "tests": [
+        "frontend/src/chordManager.test.ts"
+      ],
+      "mutation": {
+        "total_mutants": 13,
+        "survived": 12,
+        "nocov": 1,
+        "score_percent": 7.7
+      }
+    },
+    {
+      "protocol": null,
+      "doc": null,
+      "source": "backend/src/app.rs",
+      "tests": [
+        "backend/tests/integration.rs"
+      ],
+      "mutation": {
+        "total_mutants": 0,
+        "survived": 0,
+        "nocov": 0,
+        "score_percent": null
+      }
+    },
+    {
+      "protocol": null,
+      "doc": null,
+      "source": "backend/src/lib.rs",
+      "tests": [],
+      "mutation": {
+        "total_mutants": 0,
+        "survived": 0,
+        "nocov": 0,
+        "score_percent": null
+      }
+    },
+    {
+      "protocol": null,
+      "doc": null,
+      "source": "backend/src/main.rs",
+      "tests": [],
+      "mutation": {
+        "total_mutants": 0,
+        "survived": 0,
+        "nocov": 0,
+        "score_percent": null
+      }
+    },
+    {
+      "protocol": null,
+      "doc": null,
+      "source": "backend/src/routes.rs",
+      "tests": [],
+      "mutation": {
+        "total_mutants": 0,
+        "survived": 0,
+        "nocov": 0,
+        "score_percent": null
+      }
+    },
+    {
+      "protocol": null,
+      "doc": null,
+      "source": "backend/src/state.rs",
+      "tests": [],
+      "mutation": {
+        "total_mutants": 0,
+        "survived": 0,
+        "nocov": 0,
+        "score_percent": null
+      }
+    }
+  ]
+}

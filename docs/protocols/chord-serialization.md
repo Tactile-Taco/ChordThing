@@ -44,44 +44,34 @@
 - Empty action arrays stringify to 32 zeros
 
 ### Boundary Cases
-- Empty hex string: behavior undefined (not a valid input)
-- Odd-length hex string: behavior undefined
-- Non-hex characters: `BigInt` constructor throws
+- Empty hex string: returns `[]` (graceful degradation)
+- Odd-length hex string: returns `[]`
+- Non-hex characters: returns `[]`
+- Wrong length (not 32): returns `[]`
 - Actions > 1023: truncated to 10 bits (silently corrupted)
 - Negative actions: `BigInt` treats as two's complement (silently corrupted)
 
 ### Phrase Functions
 - `parsePhraseHex(hexString: string): string`
   - Empty input → empty string
-  - Odd-length input: final nibble ignored (due to `.match(/.{2}/g)`)
+  - Odd-length input: returns `''` (graceful degradation)
+  - Non-hex characters: returns `''`
 - `stringifyPhrase(phrase: string): string`
   - Empty input → empty string
   - Non-ASCII characters: encoded as UTF-8 byte sequences (may produce multi-byte hex)
 
 ---
 
-## Operational Invariants (O)
-
-### Performance
-- `parseChordActions`: O(1) — fixed 12 iterations
-- `stringifyChordActions`: O(1) — fixed max 12 iterations
-- `parsePhraseHex`: O(n) where n = hex string length
-- `stringifyPhrase`: O(n) where n = phrase length
-
-### Side Effects
-- None. All functions are pure.
-
----
-
 ## Untrusted Input Handling
 
 These functions receive data from the CharaChorder device via serial API. Device output is **untrusted**:
-- Malformed hex strings could crash `BigInt` constructor
-- Truncated responses could produce wrong action counts
-- Corrupted data could yield action codes outside expected range
+- Malformed hex strings are rejected gracefully (return `[]` or `''`)
+- Truncated responses are rejected (length check)
+- Corrupted data with non-hex characters is rejected (character validation)
 
-**Current validation:** None. `parseChordActions` assumes well-formed 32-char hex.
-**Recommended:** Add input validation (length check, hex character check) before parsing.
+**Validation applied:**
+- `parseChordActions`: length === 32 and `/^[0-9A-Fa-f]+$/` regex check
+- `parsePhraseHex`: even length and `/^[0-9A-Fa-f]*$/` regex check
 
 ---
 

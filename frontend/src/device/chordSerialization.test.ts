@@ -19,6 +19,26 @@ describe('chordSerialization', () => {
       expect(result).toEqual([]);
     });
 
+    it('should return empty array for empty string', () => {
+      const result = parseChordActions('');
+      expect(result).toEqual([]);
+    });
+
+    it('should return empty array for odd-length hex string', () => {
+      const result = parseChordActions('000CC20000000000000000000000000');
+      expect(result).toEqual([]);
+    });
+
+    it('should return empty array for non-hex characters', () => {
+      const result = parseChordActions('000CC2000000000000000000000000GG');
+      expect(result).toEqual([]);
+    });
+
+    it('should return empty array for wrong length (not 32)', () => {
+      const result = parseChordActions('000CC2000000000000000000000000');
+      expect(result).toEqual([]);
+    });
+
     it('should parse doc example chord (carpe diem)', () => {
       // From CCOS Serial API docs: CML C1 522 001946418C0000000000000000000000 6361727065206469656D 0
       // This chord encodes 'c' (99), 'd' (100), 'e' (101) in descending order
@@ -82,6 +102,16 @@ describe('chordSerialization', () => {
 
     it('should return empty string for empty input', () => {
       const result = parsePhraseHex('');
+      expect(result).toBe('');
+    });
+
+    it('should return empty string for odd-length hex input', () => {
+      const result = parsePhraseHex('68656');
+      expect(result).toBe('');
+    });
+
+    it('should return empty string for non-hex characters', () => {
+      const result = parsePhraseHex('68656C6C6G');
       expect(result).toBe('');
     });
   });
