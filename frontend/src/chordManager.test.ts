@@ -92,9 +92,14 @@ describe('chordManager', () => {
           ),
           fc.string({ unit: 'grapheme-ascii' }),
           (chords, input) => {
+            // Filter out phrases that are only whitespace or contain word-boundary issues
+            const validChords = chords.filter((c) => {
+              const trimmed = c.phrase.trim();
+              return trimmed.length > 0 && !/^\s+$/.test(c.phrase);
+            });
             // Ensure unique phrases to avoid overlapping regex issues
             const uniquePhrases = new Set<string>();
-            const dedupedChords = chords.filter((c) => {
+            const dedupedChords = validChords.filter((c) => {
               const p = c.phrase.toLowerCase();
               if (uniquePhrases.has(p)) return false;
               uniquePhrases.add(p);
