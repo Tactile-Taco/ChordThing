@@ -23,10 +23,13 @@ export function* splitChords(s: string): Generator<{ chordy: boolean; token: str
 
   if (chords.length > 0) {
     let isChord = false;
-    const escaped = chords.map((chord) => RegExp.escape(chord.phrase));
-    const chordReg = new RegExp('\\b(' + escaped.join('|') + ')\\b', 'i');
+    // Sort by phrase length descending so longer chords match first
+    const sorted = [...chords].sort((a, b) => b.phrase.length - a.phrase.length);
+    const escaped = sorted.map((chord) => RegExp.escape(chord.phrase));
+    // Match chords preceded by start/space/hyphen and followed by space/hyphen/end
+    const chordReg = new RegExp('(^|[\\s-])(' + escaped.join('|') + ')(?=[\\s-]|$)', 'gi');
     for (const chunk of s.split(chordReg)) {
-      if (chunk.length !== 0) {
+      if (chunk !== undefined && chunk.length !== 0) {
         yield { chordy: isChord, token: chunk };
       }
       isChord = !isChord;
