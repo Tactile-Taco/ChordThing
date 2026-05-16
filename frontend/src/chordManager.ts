@@ -22,17 +22,29 @@ export function* splitChords(s: string): Generator<{ chordy: boolean; token: str
   const chords = getChords();
 
   if (chords.length > 0) {
-    let isChord = false;
     // Sort by phrase length descending so longer chords match first
     const sorted = [...chords].sort((a, b) => b.phrase.length - a.phrase.length);
     const escaped = sorted.map((chord) => RegExp.escape(chord.phrase));
     // Match chords preceded by start/space/hyphen and followed by space/hyphen/end
     const chordReg = new RegExp('(^|[\\s-])(' + escaped.join('|') + ')(?=[\\s-]|$)', 'gi');
-    for (const chunk of s.split(chordReg)) {
-      if (chunk !== undefined && chunk.length !== 0) {
-        yield { chordy: isChord, token: chunk };
+
+    let lastIndex = 0;
+    for (const match of s.matchAll(chordReg)) {
+      // Text before the chord match
+      if (match.index > lastIndex) {
+        yield { chordy: false, token: s.slice(lastIndex, match.index) };
       }
-      isChord = !isChord;
+
+      // The chord phrase (capture group 2)
+      yield { chordy: true, token: match[2] };
+
+      // Update lastIndex to after the full match (including delimiter)
+      lastIndex = match.index + match[0].length;
+    }
+
+    // Remaining text after last match
+    if (lastIndex < s.length) {
+      yield { chordy: false, token: s.slice(lastIndex) };
     }
   } else {
     yield { chordy: false, token: s };
