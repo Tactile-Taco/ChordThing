@@ -26,9 +26,16 @@ async fn index_dev_mode_true() {
         assert_eq!(response.status_code(), 200);
         let html = response.text();
 
-        assert!(html.contains("localhost:5173"), "Expected dev mode script URL in HTML");
-        assert!(!html.contains("/assets/index.js"), "Should not use production assets in dev mode");
-    }).await;
+        assert!(
+            html.contains("localhost:5173"),
+            "Expected dev mode script URL in HTML"
+        );
+        assert!(
+            !html.contains("/assets/index.js"),
+            "Should not use production assets in dev mode"
+        );
+    })
+    .await;
 }
 
 #[tokio::test]
@@ -40,9 +47,16 @@ async fn index_dev_mode_false() {
         assert_eq!(response.status_code(), 200);
         let html = response.text();
 
-        assert!(html.contains("/assets/index.js"), "Expected production asset URL in HTML");
-        assert!(!html.contains("localhost:5173"), "Should not use dev server in production mode");
-    }).await;
+        assert!(
+            html.contains("/assets/index.js"),
+            "Expected production asset URL in HTML"
+        );
+        assert!(
+            !html.contains("localhost:5173"),
+            "Should not use dev server in production mode"
+        );
+    })
+    .await;
 }
 
 #[tokio::test]
@@ -52,8 +66,12 @@ async fn index_dev_mode_with_various_values() {
         let response = server.get("/").await;
 
         let html = response.text();
-        assert!(html.contains("localhost:5173"), "DEV=1 should enable dev mode");
-    }).await;
+        assert!(
+            html.contains("localhost:5173"),
+            "DEV=1 should enable dev mode"
+        );
+    })
+    .await;
 }
 
 #[tokio::test]
@@ -89,14 +107,18 @@ async fn static_files_custom_dist_path() {
     std::fs::create_dir_all(&temp_dir).unwrap();
     std::fs::write(temp_dir.join("test.txt"), "hello from custom dist").unwrap();
 
-    temp_env::async_with_vars([("FRONTEND_DIST", Some(temp_dir.to_str().unwrap()))], async {
-        let server = setup_server().await;
-        let response = server.get("/test.txt").await;
+    temp_env::async_with_vars(
+        [("FRONTEND_DIST", Some(temp_dir.to_str().unwrap()))],
+        async {
+            let server = setup_server().await;
+            let response = server.get("/test.txt").await;
 
-        assert_eq!(response.status_code(), 200);
-        let content = response.text();
-        assert_eq!(content, "hello from custom dist");
-    }).await;
+            assert_eq!(response.status_code(), 200);
+            let content = response.text();
+            assert_eq!(content, "hello from custom dist");
+        },
+    )
+    .await;
 
     std::fs::remove_dir_all(&temp_dir).unwrap();
 }
