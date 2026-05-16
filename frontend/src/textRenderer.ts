@@ -1,6 +1,6 @@
 import { splitChords, getChordForPhrase } from './chordManager';
 
-function wrapToken(token: string, tokenElement: HTMLElement, frag: DocumentFragment, nextIndex: number, _chordy: boolean): number {
+function wrapToken(token: string, tokenElement: HTMLElement, nextIndex: number): number {
   for (const char of token) {
     const charNode = document.createElement('char');
     charNode.textContent = char;
@@ -9,7 +9,6 @@ function wrapToken(token: string, tokenElement: HTMLElement, frag: DocumentFragm
     charNode.dataset.typed = 'untyped';
     tokenElement.appendChild(charNode);
   }
-  frag.appendChild(tokenElement);
   return nextIndex;
 }
 
@@ -22,8 +21,11 @@ export function wrapText(text: string): DocumentFragment {
 
   for (const { chordy, token } of chordStream) {
     if (chordy) {
-      const tokenWrap = document.createElement('ruby');
-      nextIndex = wrapToken(token, tokenWrap, fragment, nextIndex, chordy);
+      const ruby = document.createElement('ruby');
+
+      const wordWrap = document.createElement('word');
+      nextIndex = wrapToken(token, wordWrap, nextIndex);
+      ruby.appendChild(wordWrap);
 
       const openingRp = document.createElement('rp');
       openingRp.innerText = '(';
@@ -34,7 +36,8 @@ export function wrapText(text: string): DocumentFragment {
       const closingRp = document.createElement('rp');
       closingRp.innerText = ')';
 
-      tokenWrap.append(openingRp, rt, closingRp);
+      ruby.append(openingRp, rt, closingRp);
+      fragment.appendChild(ruby);
     } else {
       for (const word of token.split(/( )/)) {
         if (word === ' ') {
@@ -46,7 +49,8 @@ export function wrapText(text: string): DocumentFragment {
           fragment.appendChild(space);
         } else {
           const wordWrap = document.createElement('word');
-          nextIndex = wrapToken(word, wordWrap, fragment, nextIndex, chordy);
+          nextIndex = wrapToken(word, wordWrap, nextIndex);
+          fragment.appendChild(wordWrap);
         }
       }
     }
