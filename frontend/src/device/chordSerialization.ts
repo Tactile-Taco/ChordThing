@@ -1,4 +1,7 @@
 export function parseChordActions(hexString: string): number[] {
+  if (hexString.length !== 32 || !/^[0-9A-Fa-f]+$/.test(hexString)) {
+    return [];
+  }
   const bigInt = BigInt(`0x${hexString}`);
   const actions: number[] = [];
   // Key 1 is at highest bits (bits 118-127), Key 12 at lowest (bits 8-17)
@@ -23,6 +26,9 @@ export function stringifyChordActions(actions: number[]): string {
 }
 
 export function parsePhraseHex(hexString: string): string {
+  if (hexString.length % 2 !== 0 || !/^[0-9A-Fa-f]*$/.test(hexString)) {
+    return '';
+  }
   const pairs = hexString.match(/.{2}/g);
   return pairs ? pairs.map((hex) => String.fromCharCode(parseInt(hex, 16))).join('') : '';
 }

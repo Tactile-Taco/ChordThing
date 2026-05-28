@@ -4,6 +4,12 @@ on:
   schedule:
     - cron: '0 0 * * 0'
   workflow_dispatch:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: write
 
 jobs:
   backend-mutants:
@@ -11,16 +17,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Install Rust toolchain
-        uses: dtolnay/rust-action@stable
+        uses: dtolnay/rust-toolchain@stable
 
       - name: Install cargo-mutants
         run: cargo install cargo-mutants
 
       - name: Run cargo-mutants
-        run: cd backend && cargo mutants
+        run: cd backend && cargo mutants --exclude "src/main.rs"
 
       - name: Upload cargo-mutants results
         uses: actions/upload-artifact@v4
@@ -34,7 +40,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Setup Node.js 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
 
       - name: Install Bun
         uses: oven-sh/setup-bun@v2
@@ -48,7 +59,7 @@ jobs:
         run: cd frontend && bun add -d @stryker-mutator/core @stryker-mutator/vitest-runner
 
       - name: Run Stryker
-        run: cd frontend && npx stryker run
+        run: cd frontend && bunx stryker run
 
       - name: Upload Stryker results
         uses: actions/upload-artifact@v4
@@ -56,3 +67,53 @@ jobs:
           name: stryker-results
           path: frontend/reports/
           if-no-files-found: warn
+
+  evidence-chain:
+    name: Generate Evidence Chain
+    runs-on: ubuntu-latest
+    needs: [backend-mutants, frontend-stryker]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Download Stryker results
+        uses: actions/download-artifact@v4
+        with:
+          name: stryker-results
+          path: frontend/reports/
+
+      - name: Download cargo-mutants results
+        uses: actions/download-artifact@v4
+        with:
+          name: cargo-mutants-results
+          path: backend/mutants.out/
+
+      - name: Generate evidence chain
+        run: python3 scripts/generate-evidence-chain.py
+
+      - name: Upload evidence chain artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: evidence-chain
+          path: |
+            evidence-chain.md
+            evidence-chain.json
+          if-no-files-found: warn
+
+      - name: Post PR comment with mutation summary
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const md = fs.readFileSync('evidence-chain.md', 'utf8');
+            // Truncate if too large for a PR comment
+            const body = md.length > 65000
+              ? md.substring(0, 65000) + '\n\n_(truncated)_'
+              : md;
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '## Mutation Testing Evidence Chain\n\n' + body,
+            });

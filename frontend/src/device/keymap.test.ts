@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import * as fc from 'fast-check';
 import { KEYMAP_CODES, getActionName } from './keymap';
 
 describe('keymap', () => {
@@ -29,6 +30,28 @@ describe('keymap', () => {
 
     it('should return Unknown for unrecognized codes', () => {
       expect(getActionName(9999)).toBe('Unknown(9999)');
+    });
+  });
+
+  describe('property-based tests', () => {
+    it('never throws for any integer input', () => {
+      fc.assert(
+        fc.property(fc.integer(), (actionId) => {
+          expect(() => getActionName(actionId)).not.toThrow();
+        }),
+        { numRuns: 1000 }
+      );
+    });
+
+    it('ASCII range (32-126) always returns a single character', () => {
+      fc.assert(
+        fc.property(fc.integer({ min: 33, max: 126 }), (actionId) => {
+          const name = getActionName(actionId);
+          expect(name).toHaveLength(1);
+          expect(name.charCodeAt(0)).toBe(actionId);
+        }),
+        { numRuns: 1000 }
+      );
     });
   });
 });

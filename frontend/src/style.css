@@ -125,11 +125,11 @@ char {
   color: var(--color-text-primary);
   margin: 0px;
   padding: 0px;
-  transition: all 0.1s ease;
+  transition: color 0.1s ease, background-color 0.1s ease;
   opacity: 0.6;
   &.typo {
     color: var(--color-text-error);
-    background-color: --color-error-background;
+    background-color: var(--color-error-background);
     opacity: 0.3;
   }
   &.correct {

@@ -1,77 +1,124 @@
-use axum::body::Body;
-use axum::http::{Request, StatusCode};
-use tower::ServiceExt;
-
+use axum_test::TestServer;
 use chordthing_backend::app::create_app_with_state;
+
+async fn setup_server() -> TestServer {
+    let app = create_app_with_state();
+    TestServer::new(app)
+}
 
 #[tokio::test]
 async fn index_returns_html() {
-    let app = create_app_with_state();
+    let server = setup_server().await;
 
-    let response = app
-        .oneshot(Request::builder().uri("/").body(Body::empty()).unwrap())
-        .await
-        .unwrap();
+    let response = server.get("/").await;
 
-    assert_eq!(response.status(), StatusCode::OK);
-
-    let body = axum::body::to_bytes(response.into_body(), usize::MAX)
-        .await
-        .unwrap();
-    let html = String::from_utf8(body.to_vec()).unwrap();
+    assert_eq!(response.status_code(), 200);
+    let html = response.text();
     assert!(html.contains("ChordMan"));
 }
 
 #[tokio::test]
+async fn index_dev_mode_true() {
+    temp_env::async_with_vars([("DEV", Some("true"))], async {
+        let server = setup_server().await;
+        let response = server.get("/").await;
+
+        assert_eq!(response.status_code(), 200);
+        let html = response.text();
+
+        assert!(
+            html.contains("localhost:5173"),
+            "Expected dev mode script URL in HTML"
+        );
+        assert!(
+            !html.contains("/assets/index.js"),
+            "Should not use production assets in dev mode"
+        );
+    })
+    .await;
+}
+
+#[tokio::test]
+async fn index_dev_mode_false() {
+    temp_env::async_with_vars([("DEV", None::<&str>)], async {
+        let server = setup_server().await;
+        let response = server.get("/").await;
+
+        assert_eq!(response.status_code(), 200);
+        let html = response.text();
+
+        assert!(
+            html.contains("/assets/index.js"),
+            "Expected production asset URL in HTML"
+        );
+        assert!(
+            !html.contains("localhost:5173"),
+            "Should not use dev server in production mode"
+        );
+    })
+    .await;
+}
+
+#[tokio::test]
+async fn index_dev_mode_with_various_values() {
+    temp_env::async_with_vars([("DEV", Some("1"))], async {
+        let server = setup_server().await;
+        let response = server.get("/").await;
+
+        let html = response.text();
+        assert!(
+            html.contains("localhost:5173"),
+            "DEV=1 should enable dev mode"
+        );
+    })
+    .await;
+}
+
+#[tokio::test]
 async fn api_set_test_gen_returns_ok() {
-    let app = create_app_with_state();
+    let server = setup_server().await;
 
-    let response = app
-        .oneshot(
-            Request::builder()
-                .uri("/api/set-test-gen")
-                .method("POST")
-                .body(Body::empty())
-                .unwrap(),
-        )
-        .await
-        .unwrap();
+    let response = server.post("/api/set-test-gen").await;
 
-    assert_eq!(response.status(), StatusCode::OK);
+    assert_eq!(response.status_code(), 200);
 }
 
 #[tokio::test]
 async fn api_typer_init_returns_ok() {
-    let app = create_app_with_state();
+    let server = setup_server().await;
 
-    let response = app
-        .oneshot(
-            Request::builder()
-                .uri("/api/typer-init")
-                .method("POST")
-                .body(Body::empty())
-                .unwrap(),
-        )
-        .await
-        .unwrap();
+    let response = server.post("/api/typer-init").await;
 
-    assert_eq!(response.status(), StatusCode::OK);
+    assert_eq!(response.status_code(), 200);
 }
 
 #[tokio::test]
 async fn static_files_fallback() {
-    let app = create_app_with_state();
+    let server = setup_server().await;
 
-    let response = app
-        .oneshot(
-            Request::builder()
-                .uri("/nonexistent.js")
-                .body(Body::empty())
-                .unwrap(),
-        )
-        .await
-        .unwrap();
+    let response = server.get("/nonexistent.js").await;
 
-    // In test environment, frontend/dist may not exist, so we expect 404
-    assert_eq!(response.status(), StatusCode::NOT_FOUND);
+    assert_eq!(response.status_code(), 404);
+}
+
+#[tokio::test]
+async fn static_files_custom_dist_path() {
+    let temp_dir = std::env::temp_dir().join("chordthing-test-dist");
+    std::fs::create_dir_all(&temp_dir).unwrap();
+    std::fs::write(temp_dir.join("test.txt"), "hello from custom dist").unwrap();
+
+    temp_env::async_with_vars(
+        [("FRONTEND_DIST", Some(temp_dir.to_str().unwrap()))],
+        async {
+            let server = setup_server().await;
+            let response = server.get("/test.txt").await;
+
+            assert_eq!(response.status_code(), 200);
+            let content = response.text();
+            assert_eq!(content, "hello from custom dist");
+        },
+    )
+    .await;
+
+    std::fs::remove_dir_all(&temp_dir).unwrap();
 }

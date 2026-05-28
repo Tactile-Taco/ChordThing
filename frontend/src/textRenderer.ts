@@ -1,6 +1,6 @@
-import { splitChords, getChordForPhrase } from './chordManager';
+import { splitChords, splitChordsAsync, getChordForPhrase, type SplitToken } from './chordManager';
 
-function wrapToken(token: string, tokenElement: HTMLElement, frag: DocumentFragment, nextIndex: number, _chordy: boolean): number {
+function wrapToken(token: string, tokenElement: HTMLElement, nextIndex: number): number {
   for (const char of token) {
     const charNode = document.createElement('char');
     charNode.textContent = char;
@@ -9,21 +9,20 @@ function wrapToken(token: string, tokenElement: HTMLElement, frag: DocumentFragm
     charNode.dataset.typed = 'untyped';
     tokenElement.appendChild(charNode);
   }
-  frag.appendChild(tokenElement);
   return nextIndex;
 }
 
-export function wrapText(text: string): DocumentFragment {
+function buildFragmentFromTokens(tokens: SplitToken[]): DocumentFragment {
   let nextIndex = Number(sessionStorage.getItem('next_char_index') ?? 0);
-  if (nextIndex) text = ' ' + text;
-
-  const chordStream = splitChords(text);
   const fragment = document.createDocumentFragment();
 
-  for (const { chordy, token } of chordStream) {
+  for (const { chordy, token } of tokens) {
     if (chordy) {
-      const tokenWrap = document.createElement('ruby');
-      nextIndex = wrapToken(token, tokenWrap, fragment, nextIndex, chordy);
+      const ruby = document.createElement('ruby');
+
+      const wordWrap = document.createElement('word');
+      nextIndex = wrapToken(token, wordWrap, nextIndex);
+      ruby.appendChild(wordWrap);
 
       const openingRp = document.createElement('rp');
       openingRp.innerText = '(';
@@ -34,7 +33,8 @@ export function wrapText(text: string): DocumentFragment {
       const closingRp = document.createElement('rp');
       closingRp.innerText = ')';
 
-      tokenWrap.append(openingRp, rt, closingRp);
+      ruby.append(openingRp, rt, closingRp);
+      fragment.appendChild(ruby);
     } else {
       for (const word of token.split(/( )/)) {
         if (word === ' ') {
@@ -46,7 +46,8 @@ export function wrapText(text: string): DocumentFragment {
           fragment.appendChild(space);
         } else {
           const wordWrap = document.createElement('word');
-          nextIndex = wrapToken(word, wordWrap, fragment, nextIndex, chordy);
+          nextIndex = wrapToken(word, wordWrap, nextIndex);
+          fragment.appendChild(wordWrap);
         }
       }
     }
@@ -54,4 +55,18 @@ export function wrapText(text: string): DocumentFragment {
 
   sessionStorage.setItem('next_char_index', String(nextIndex));
   return fragment;
+}
+
+/** Synchronous version — blocks main thread */
+export function wrapText(text: string): DocumentFragment {
+  text = text.trim() + ' ';
+  const tokens = Array.from(splitChords(text));
+  return buildFragmentFromTokens(tokens);
+}
+
+/** Asynchronous version — runs splitChords in a Web Worker */
+export async function wrapTextAsync(text: string): Promise<DocumentFragment> {
+  text = text.trim() + ' ';
+  const tokens = await splitChordsAsync(text);
+  return buildFragmentFromTokens(tokens);
 }
