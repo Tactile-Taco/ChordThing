@@ -277,4 +277,99 @@ describe('Typer', () => {
       expect(preventSpy).toHaveBeenCalled();
     });
   });
+
+  describe('chord detection integration', () => {
+    beforeEach(() => {
+      // Seed chord library with a known chord matching the start of default text
+      localStorage.setItem('chords', JSON.stringify([{ chord: 'SR', phrase: 'Type' }]));
+      document.body.innerHTML = '';
+      sessionStorage.clear();
+      sessionStorage.setItem('next_char_index', '0');
+      const dom = createMinimalDom();
+      typeDisplay = dom.typeDisplay;
+      typerElement = dom.typer;
+      dialog = dom.dialog;
+      typerInstance = new Typer(typeDisplay, sessionStorage);
+      typerInstance.init();
+    });
+
+    afterEach(() => {
+      localStorage.removeItem('chords');
+    });
+
+    it('should mark all chord phrase characters as correct when chord is typed character-by-character followed by space', () => {
+      dispatchBeforeInput(typerElement, 'insertText', 'T');
+      dispatchBeforeInput(typerElement, 'insertText', 'y');
+      dispatchBeforeInput(typerElement, 'insertText', 'p');
+      dispatchBeforeInput(typerElement, 'insertText', 'e');
+      dispatchBeforeInput(typerElement, 'insertText', ' ');
+
+      const tChar = typeDisplay.querySelector('[data-index="0"]') as HTMLElement;
+      const yChar = typeDisplay.querySelector('[data-index="1"]') as HTMLElement;
+      const pChar = typeDisplay.querySelector('[data-index="2"]') as HTMLElement;
+      const eChar = typeDisplay.querySelector('[data-index="3"]') as HTMLElement;
+
+      expect(tChar.classList.contains('correct')).toBe(true);
+      expect(tChar.dataset.typed).toBe(tChar.dataset.val);
+      expect(yChar.classList.contains('correct')).toBe(true);
+      expect(yChar.dataset.typed).toBe(yChar.dataset.val);
+      expect(pChar.classList.contains('correct')).toBe(true);
+      expect(pChar.dataset.typed).toBe(pChar.dataset.val);
+      expect(eChar.classList.contains('correct')).toBe(true);
+      expect(eChar.dataset.typed).toBe(eChar.dataset.val);
+    });
+
+    it('should place the cursor after the triggering space', () => {
+      dispatchBeforeInput(typerElement, 'insertText', 'T');
+      dispatchBeforeInput(typerElement, 'insertText', 'y');
+      dispatchBeforeInput(typerElement, 'insertText', 'p');
+      dispatchBeforeInput(typerElement, 'insertText', 'e');
+      dispatchBeforeInput(typerElement, 'insertText', ' ');
+
+      const cursor = document.getElementById('cursor') as HTMLElement;
+      // cursor should be on the character after the space (index 5)
+      expect(cursor.dataset.index).toBe('5');
+    });
+
+    it('should decrement untypedCount by phrase length plus space', () => {
+      const untypedBefore = typerInstance.getUntypedCount();
+      dispatchBeforeInput(typerElement, 'insertText', 'T');
+      dispatchBeforeInput(typerElement, 'insertText', 'y');
+      dispatchBeforeInput(typerElement, 'insertText', 'p');
+      dispatchBeforeInput(typerElement, 'insertText', 'e');
+      dispatchBeforeInput(typerElement, 'insertText', ' ');
+
+      // 5 characters typed (4 phrase + 1 space)
+      expect(typerInstance.getUntypedCount()).toBe(untypedBefore - 5);
+    });
+
+    it('should process non-chord text normally', () => {
+      // Type 'x' which is not part of a chord
+      dispatchBeforeInput(typerElement, 'insertText', 'x');
+
+      const firstChar = typeDisplay.querySelector('[data-index="0"]') as HTMLElement;
+      expect(firstChar.classList.contains('typo')).toBe(true);
+      expect(firstChar.dataset.typed).toBe('x');
+    });
+
+    it('should handle backspace correctly after chord detection', () => {
+      // Type the chord and space
+      dispatchBeforeInput(typerElement, 'insertText', 'T');
+      dispatchBeforeInput(typerElement, 'insertText', 'y');
+      dispatchBeforeInput(typerElement, 'insertText', 'p');
+      dispatchBeforeInput(typerElement, 'insertText', 'e');
+      dispatchBeforeInput(typerElement, 'insertText', ' ');
+
+      // Backspace once: should undo the space
+      dispatchBeforeInput(typerElement, 'deleteContentBackward');
+
+      const spaceChar = typeDisplay.querySelector('[data-index="4"]') as HTMLElement;
+      expect(spaceChar.dataset.typed).toBe('untyped');
+      expect(spaceChar.textContent).toBe(spaceChar.dataset.val);
+
+      // Cursor should be back on the space character
+      const cursor = document.getElementById('cursor') as HTMLElement;
+      expect(cursor.dataset.index).toBe('4');
+    });
+  });
 });

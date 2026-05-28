@@ -43,7 +43,7 @@
 - The counter never drifts from ground truth
 
 ### Buffer Management
-- **Refill trigger:** when `#untypedCount` falls below `TEST_BUFFER_MIN_LENGTH` (800), fragments are appended until count ≥ 800
+- **Refill trigger:** when `#untypedCount` falls below `TEST_BUFFER_MIN_LENGTH` (200), fragments are generated and appended until count ≥ 200
 - **Refill timing:** appending never occurs synchronously inside `beforeinput`. It is deferred to `requestAnimationFrame`
 - **Refill idempotency:** only one rAF callback is scheduled per frame (`#refillPending` guard)
 
@@ -56,7 +56,7 @@
 
 ## Operational Invariants (O)
 
-### Performance
+2### Performance
 - `beforeinput` handler completes without forced synchronous layout
 - No `querySelectorAll` scans inside the hot path (counter is maintained incrementally)
 - CSS transitions on `char` are scoped to `color` and `background-color` only (no `all`)

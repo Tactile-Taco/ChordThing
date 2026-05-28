@@ -3,6 +3,11 @@ export interface Chord {
   phrase: string;
 }
 
+export interface SplitToken {
+  chordy: boolean;
+  token: string;
+}
+
 export function getChords(): Chord[] {
   const chordsJson = localStorage.getItem('chords');
   return chordsJson ? (JSON.parse(chordsJson) as Chord[]) : [];
@@ -16,37 +21,112 @@ export function getChordForPhrase(phrase: string): string {
 
 export function saveChords(chords: Chord[]): void {
   localStorage.setItem('chords', JSON.stringify(chords));
+  invalidateRegexCache();
+  invalidateChordWorker();
 }
 
-export function* splitChords(s: string): Generator<{ chordy: boolean; token: string }> {
+// --- Module-level cached regex ---
+
+let cachedRegex: RegExp | null = null;
+let cachedChordsHash = '';
+
+function buildRegex(chords: Chord[]): RegExp {
+  const sorted = [...chords].sort((a, b) => b.phrase.length - a.phrase.length);
+  const escaped = sorted.map((chord) => RegExp.escape(chord.phrase));
+  return new RegExp('(^|[\\s-])(' + escaped.join('|') + ')(?=[\\s-]|$)', 'gi');
+}
+
+function getRegex(): RegExp | null {
   const chords = getChords();
+  const hash = JSON.stringify(chords);
+  if (cachedRegex && hash === cachedChordsHash) {
+    return cachedRegex;
+  }
+  if (chords.length === 0) {
+    cachedRegex = null;
+    cachedChordsHash = hash;
+    return null;
+  }
+  cachedRegex = buildRegex(chords);
+  cachedChordsHash = hash;
+  return cachedRegex;
+}
 
-  if (chords.length > 0) {
-    // Sort by phrase length descending so longer chords match first
-    const sorted = [...chords].sort((a, b) => b.phrase.length - a.phrase.length);
-    const escaped = sorted.map((chord) => RegExp.escape(chord.phrase));
-    // Match chords preceded by start/space/hyphen and followed by space/hyphen/end
-    const chordReg = new RegExp('(^|[\\s-])(' + escaped.join('|') + ')(?=[\\s-]|$)', 'gi');
+export function invalidateRegexCache(): void {
+  cachedRegex = null;
+  cachedChordsHash = '';
+}
 
+export function* splitChords(s: string): Generator<SplitToken> {
+  const chordReg = getRegex();
+
+  if (chordReg) {
     let lastIndex = 0;
     for (const match of s.matchAll(chordReg)) {
-      // Text before the chord match
       if (match.index > lastIndex) {
         yield { chordy: false, token: s.slice(lastIndex, match.index) };
       }
-
-      // The chord phrase (capture group 2)
       yield { chordy: true, token: match[2] };
-
-      // Update lastIndex to after the full match (including delimiter)
       lastIndex = match.index + match[0].length;
     }
 
-    // Remaining text after last match
     if (lastIndex < s.length) {
       yield { chordy: false, token: s.slice(lastIndex) };
     }
   } else {
     yield { chordy: false, token: s };
   }
+}
+
+// --- Async worker-based splitting ---
+
+let worker: Worker | null = null;
+let pendingId = 0;
+const pending = new Map<number, (tokens: SplitToken[]) => void>();
+
+function getWorker(): Worker | null {
+  if (typeof Worker === 'undefined') return null;
+  if (!worker) {
+    worker = new Worker(new URL('./chordWorker.ts', import.meta.url), { type: 'module' });
+    worker.onmessage = (e: MessageEvent) => {
+      if (e.data.type === 'splitResult') {
+        const resolve = pending.get(e.data.id);
+        if (resolve) {
+          pending.delete(e.data.id);
+          resolve(e.data.tokens);
+        }
+      }
+    };
+    // Send chords + pre-built regex pattern to worker
+    const chords = getChords();
+    const regex = getRegex();
+    worker.postMessage({ type: 'init', chords, regexPattern: regex?.source ?? null, regexFlags: regex?.flags ?? null });
+  }
+  return worker;
+}
+
+/** Invalidate the worker when chords change (call after saveChords) */
+export function invalidateChordWorker(): void {
+  if (worker) {
+    worker.terminate();
+    worker = null;
+    pending.clear();
+    pendingId = 0;
+  }
+}
+
+/** Async version of splitChords.
+ *  Runs in a Web Worker when available; falls back to sync on the main thread otherwise.
+ */
+export function splitChordsAsync(text: string): Promise<SplitToken[]> {
+  const w = getWorker();
+  if (!w) {
+    // Worker not available (test env, SSR) — fall back to sync
+    return Promise.resolve(Array.from(splitChords(text)));
+  }
+  return new Promise((resolve) => {
+    const id = ++pendingId;
+    pending.set(id, resolve);
+    w.postMessage({ type: 'split', id, text });
+  });
 }

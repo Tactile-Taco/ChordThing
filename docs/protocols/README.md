@@ -23,7 +23,8 @@ Each protocol follows the triplet **P = (S, B, O)**:
 | [Typer](typer.md) | `frontend/src/typer.ts` | Draft | `frontend/src/typer.test.ts` |
 | [Text Renderer](text-renderer.md) | `frontend/src/textRenderer.ts` | Draft | `frontend/src/textRenderer.test.ts` |
 | [Chord Serialization](chord-serialization.md) | `frontend/src/device/chordSerialization.ts` | Draft | `frontend/src/device/chordSerialization.test.ts` |
-| [Chord Manager](chord-manager.md) | `frontend/src/chordManager.ts` | Draft | — |
+| [Chord Manager](chord-manager.md) | `frontend/src/chordManager.ts` | Draft | `frontend/src/chordManager.test.ts` |
+| [Impulse Chording](impulse-chording.md) | `frontend/src/chordDetector.ts` | Draft | `frontend/src/chordDetector.test.ts` |
 
 ## Relationship to Other Docs
 

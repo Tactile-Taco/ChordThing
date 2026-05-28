@@ -1,4 +1,4 @@
-import { splitChords, getChordForPhrase } from './chordManager';
+import { splitChords, splitChordsAsync, getChordForPhrase, type SplitToken } from './chordManager';
 
 function wrapToken(token: string, tokenElement: HTMLElement, nextIndex: number): number {
   for (const char of token) {
@@ -12,14 +12,11 @@ function wrapToken(token: string, tokenElement: HTMLElement, nextIndex: number):
   return nextIndex;
 }
 
-export function wrapText(text: string): DocumentFragment {
+function buildFragmentFromTokens(tokens: SplitToken[]): DocumentFragment {
   let nextIndex = Number(sessionStorage.getItem('next_char_index') ?? 0);
-  text = text.trim() + ' ';
-
-  const chordStream = splitChords(text);
   const fragment = document.createDocumentFragment();
 
-  for (const { chordy, token } of chordStream) {
+  for (const { chordy, token } of tokens) {
     if (chordy) {
       const ruby = document.createElement('ruby');
 
@@ -58,4 +55,18 @@ export function wrapText(text: string): DocumentFragment {
 
   sessionStorage.setItem('next_char_index', String(nextIndex));
   return fragment;
+}
+
+/** Synchronous version — blocks main thread */
+export function wrapText(text: string): DocumentFragment {
+  text = text.trim() + ' ';
+  const tokens = Array.from(splitChords(text));
+  return buildFragmentFromTokens(tokens);
+}
+
+/** Asynchronous version — runs splitChords in a Web Worker */
+export async function wrapTextAsync(text: string): Promise<DocumentFragment> {
+  text = text.trim() + ' ';
+  const tokens = await splitChordsAsync(text);
+  return buildFragmentFromTokens(tokens);
 }

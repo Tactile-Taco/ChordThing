@@ -15,8 +15,12 @@
   - `data-index`: integer, monotonically increasing within the fragment
   - `data-val`: the character (including `' '` for spaces)
   - `data-typed="untyped"`
-- `ruby` elements contain: `char` children (the word), plus `rp` × 2, `rt` × 1
-- `word` elements contain only `char` children
+- `ruby` elements contain, in order:
+  1. `char` children (one per character of the word)
+  2. `rp` with textContent `'('`
+  3. `rt` with textContent = chord notation from `getChordForPhrase(token)`
+  4. `rp` with textContent `')'`
+- `word` elements contain only `char` children (one per character)
 
 ### Index Continuity
 - `data-index` values form a contiguous sequence with no gaps

@@ -1,6 +1,10 @@
-import { wrapText } from './textRenderer';
+import { wrapText, wrapTextAsync } from './textRenderer';
+import { ChordDetector, type ChordDetectedEvent } from './chordDetector';
+import { getChords } from './chordManager';
 
 const TEST_BUFFER_MIN_LENGTH = 800;
+/** Max fragments to generate in a single refill pass to avoid runaway */
+const MAX_FRAGMENTS_PER_REFILL = 25;
 
 export class Typer {
   private typeDisplay: HTMLDivElement;
@@ -11,6 +15,7 @@ export class Typer {
   private scrollPending = false;
   private refillPending = false;
   private scrollTarget: HTMLElement | null = null;
+  private chordDetector: ChordDetector;
 
   /** @test-only Exposed for test verification only */
   getUntypedCount(): number {
@@ -21,6 +26,10 @@ export class Typer {
     this.typeDisplay = typeDisplay;
     this.sessionStorage = sessionStorage;
     this.typerElement = document.getElementById('typer') as HTMLDivElement;
+    this.chordDetector = new ChordDetector(
+      (event: ChordDetectedEvent) => this.handleChordDetected(event),
+      new Map(getChords().map((c) => [c.phrase, c.chord]))
+    );
     this.setupEventListeners();
   }
 
@@ -47,6 +56,17 @@ export class Typer {
     });
 
     this.typerElement.addEventListener('beforeinput', (e) => this.handleInput(e));
+  }
+
+  private handleChordDetected(event: ChordDetectedEvent): void {
+    for (let i = event.startIndex; i <= event.endIndex; i++) {
+      const charEl = this.charAt(i);
+      if (charEl) {
+        charEl.dataset.typed = charEl.dataset.val ?? '';
+        charEl.textContent = charEl.dataset.typed;
+        charEl.setAttribute('class', 'correct');
+      }
+    }
   }
 
   private handleInput(e: InputEvent): void {
@@ -79,6 +99,9 @@ export class Typer {
           this.#untypedCount++;
         } else {
           const data = e.data ?? '';
+          const cursorIndex = Number(cursor.dataset.index);
+          this.chordDetector.feed(data, cursorIndex);
+
           cursor.dataset.typed = data;
           cursor.textContent = cursor.dataset.typed;
           const isCorrect = cursor.dataset.val === cursor.dataset.typed;
@@ -88,10 +111,7 @@ export class Typer {
           if (!this.refillPending) {
             this.refillPending = true;
             requestAnimationFrame(() => {
-              this.refillPending = false;
-              while (this.#untypedCount < TEST_BUFFER_MIN_LENGTH) {
-                this.typeDisplay.append(this.getTextFragment());
-              }
+              this.runRefillLoop();
             });
           }
         }
@@ -112,13 +132,29 @@ export class Typer {
     }
   }
 
+  /** Async refill loop — generates fragments off-main-thread and appends when ready */
+  private async runRefillLoop(): Promise<void> {
+    try {
+      let fragmentsGenerated = 0;
+      while (
+        this.#untypedCount < TEST_BUFFER_MIN_LENGTH &&
+        fragmentsGenerated < MAX_FRAGMENTS_PER_REFILL
+      ) {
+        const fragment = await this.getTextFragment();
+        this.typeDisplay.append(fragment);
+      }
+    } finally {
+      this.refillPending = false;
+    }
+  }
+
   getElement(): HTMLDivElement {
     return this.typerElement;
   }
 
-  private getTextFragment(): DocumentFragment {
+  private async getTextFragment(): Promise<DocumentFragment> {
     const text = 'Type this text as fast as you can';
-    const fragment = wrapText(text);
+    const fragment = await wrapTextAsync(text);
     const untypedChars = fragment.querySelectorAll('[data-typed="untyped"]');
     this.#untypedCount += untypedChars.length;
     return fragment;
@@ -130,7 +166,11 @@ export class Typer {
       this.sessionStorage.setItem(tgm, localStorage.getItem(tgm) ?? 'random');
     }
 
-    this.typeDisplay.append(this.getTextFragment());
+    const fragment = wrapText('Type this text as fast as you can');
+    const untypedChars = fragment.querySelectorAll('[data-typed="untyped"]');
+    this.#untypedCount += untypedChars.length;
+    this.typeDisplay.append(fragment);
+
     this.typerInited = true;
     const first = this.charAt(0);
     if (!first) {
